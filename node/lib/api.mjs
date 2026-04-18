@@ -1,17 +1,33 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { fileURLToPath } from "node:url";
+
+function skillDir() {
+  // node/lib/api.mjs → skill root is two dirs up
+  return path.normalize(path.join(path.dirname(fileURLToPath(import.meta.url)), "..", ".."));
+}
 
 export function loadEnv() {
+  const skill = skillDir();
+  const home = os.homedir();
   const files = [
+    // cwd（项目级覆盖，优先级最高）
     "outline.env",
     ".env",
-    path.join(os.homedir(), "outline.env"),
-    path.join(os.homedir(), ".env"),
+    // skill 目录（本仓库自带配置，介于 cwd 与 home 之间）
+    path.join(skill, "outline.env"),
+    path.join(skill, ".env"),
+    // 用户家目录
+    path.join(home, "outline.env"),
+    path.join(home, ".env"),
   ];
+  const seen = new Set();
   for (const f of files) {
-    if (!fs.existsSync(f)) continue;
-    const content = fs.readFileSync(f, "utf8");
+    const abs = path.resolve(f);
+    if (seen.has(abs) || !fs.existsSync(abs)) continue;
+    seen.add(abs);
+    const content = fs.readFileSync(abs, "utf8");
     for (const line of content.split(/\r?\n/)) {
       const t = line.trim();
       if (!t || t.startsWith("#") || !t.includes("=")) continue;
@@ -51,7 +67,7 @@ function ensureReady() {
   if (!BASE_URL || !API_KEY) {
     console.log(JSON.stringify({
       ok: false,
-      error: "Missing OUTLINE_BASE_URL or OUTLINE_API_KEY. Set them in env or in outline.env / .env (cwd or ~).",
+      error: "Missing OUTLINE_BASE_URL or OUTLINE_API_KEY. Set them in env or in outline.env / .env (cwd, skill dir, or ~).",
     }));
     process.exit(1);
   }

@@ -1,0 +1,16 @@
+# 下载 skill 压缩包 / git archive 时自动排除仓库元文件
+# （GitHub "Download ZIP" 与 `git archive` 均遵守 export-ignore）
+README.md        export-ignore
+.gitignore       export-ignore
+.gitattributes   export-ignore
+.github/         export-ignore
+CHANGELOG.md     export-ignore
+# LICENSE 保留在 skill 包里：MIT 许可要求分发时附带原许可证文本。
+
+# 统一换行，避免 Windows 上 bash 脚本执行异常
+*.sh    text eol=lf
+*.ps1   text eol=crlf
+*.cmd   text eol=crlf
+*.py    text eol=lf
+*.mjs   text eol=lf
+*.md    text eol=lf

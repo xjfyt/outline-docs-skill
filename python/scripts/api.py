@@ -5,21 +5,37 @@ import json
 import time
 
 
+def _skill_dir():
+    # python/scripts/api.py → skill root is two dirs up
+    return os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
+
+
 def load_env():
+    home = os.path.expanduser("~")
+    skill = _skill_dir()
     env_files = [
+        # cwd（项目级覆盖，优先级最高）
         "outline.env",
         ".env",
-        os.path.join(os.path.expanduser("~"), "outline.env"),
-        os.path.join(os.path.expanduser("~"), ".env"),
+        # skill 目录（本仓库自带配置，介于 cwd 与 home 之间）
+        os.path.join(skill, "outline.env"),
+        os.path.join(skill, ".env"),
+        # 用户家目录
+        os.path.join(home, "outline.env"),
+        os.path.join(home, ".env"),
     ]
+    seen = set()
     for env_file in env_files:
-        if os.path.exists(env_file):
-            with open(env_file, "r") as f:
-                for line in f:
-                    if "=" in line and not line.strip().startswith("#"):
-                        key, value = line.strip().split("=", 1)
-                        if key not in os.environ:
-                            os.environ[key] = value.strip("\"'")
+        env_file = os.path.abspath(env_file)
+        if env_file in seen or not os.path.exists(env_file):
+            continue
+        seen.add(env_file)
+        with open(env_file, "r") as f:
+            for line in f:
+                if "=" in line and not line.strip().startswith("#"):
+                    key, value = line.strip().split("=", 1)
+                    if key not in os.environ:
+                        os.environ[key] = value.strip("\"'")
 
 
 load_env()
@@ -53,7 +69,7 @@ def _ensure_ready():
             json.dumps(
                 {
                     "ok": False,
-                    "error": "Missing OUTLINE_BASE_URL or OUTLINE_API_KEY. Set them in env or in outline.env / .env (cwd or ~).",
+                    "error": "Missing OUTLINE_BASE_URL or OUTLINE_API_KEY. Set them in env or in outline.env / .env (cwd, skill dir, or ~).",
                 },
                 ensure_ascii=False,
             )

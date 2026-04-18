@@ -8,7 +8,7 @@
 | `status: 403` | 当前 key 对该集合/文档无权限。 |
 | `status: 404` | ID/URL 不对，或文档已删除/归档。归档的文档要先 `document restore`。 |
 | `status: 429` | 限流。CLI 已自动重试 3 次；`upload_dir` 加大 `--delay`（如 2.0/3.0）。 |
-| `Missing OUTLINE_BASE_URL or OUTLINE_API_KEY` | 配置环境变量；本 Skill 支持 `outline.env`/`.env`（cwd 或 `~/`）。 |
+| `Missing OUTLINE_BASE_URL or OUTLINE_API_KEY` | 配置环境变量；本 Skill 支持 `outline.env`/`.env`（cwd、skill 目录 或 `~/`）。仓库根有 `outline.env.example` 可复制。 |
 | `未找到可用的运行时` | 装 uv（`curl -LsSf https://astral.sh/uv/install.sh \| sh`）、或 pip 装 httpx、或装 Node >= 18。 |
 | Node 版本 < 18 | 全局 fetch 不可用；升级 Node 或改用 Python/uv 路径。 |
 
