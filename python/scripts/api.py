@@ -15,13 +15,13 @@ def load_env():
     skill = _skill_dir()
     env_files = [
         # cwd（项目级覆盖，优先级最高）
-        "outline.env",
+        ".outline.env",
         ".env",
         # skill 目录（本仓库自带配置，介于 cwd 与 home 之间）
-        os.path.join(skill, "outline.env"),
+        os.path.join(skill, ".outline.env"),
         os.path.join(skill, ".env"),
         # 用户家目录
-        os.path.join(home, "outline.env"),
+        os.path.join(home, ".outline.env"),
         os.path.join(home, ".env"),
     ]
     seen = set()
@@ -69,7 +69,7 @@ def _ensure_ready():
             json.dumps(
                 {
                     "ok": False,
-                    "error": "Missing OUTLINE_BASE_URL or OUTLINE_API_KEY. Set them in env or in outline.env / .env (cwd, skill dir, or ~).",
+                    "error": "Missing OUTLINE_BASE_URL or OUTLINE_API_KEY. Set them in env or in .outline.env / .env (cwd, skill dir, or ~).",
                 },
                 ensure_ascii=False,
             )

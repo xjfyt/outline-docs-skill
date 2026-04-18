@@ -82,18 +82,18 @@ git archive --format=zip --output=outline-docs-skill.zip HEAD
 支持的配置位置（按优先级从高到低）：
 
 1. 进程环境变量（`export` / `set` / `$env:`）
-2. 当前工作目录 `<cwd>/outline.env` 或 `<cwd>/.env`（项目级覆盖）
-3. **Skill 目录 `<skill>/outline.env` 或 `<skill>/.env`**（本仓库根目录；推荐放这里，跟着 skill 一起管理）
-4. 用户家目录 `~/outline.env` 或 `~/.env`
+2. 当前工作目录 `<cwd>/.outline.env` 或 `<cwd>/.env`（项目级覆盖）
+3. **Skill 目录 `<skill>/.outline.env` 或 `<skill>/.env`**（本仓库根目录；推荐放这里，跟着 skill 一起管理）
+4. 用户家目录 `~/.outline.env` 或 `~/.env`
 
-仓库根已提供 [`outline.env.example`](outline.env.example) 作为配置模板，复制并改名即可：
+仓库根已提供 [`.outline.env.example`](.outline.env.example) 作为配置模板，复制并改名即可：
 
 ```bash
-cp outline.env.example outline.env
-# 然后编辑 outline.env，填入真实的 BASE_URL 和 API_KEY
+cp .outline.env.example .outline.env
+# 然后编辑 .outline.env，填入真实的 BASE_URL 和 API_KEY
 ```
 
-> `outline.env` 与 `.env` 已加入 [`.gitignore`](.gitignore)，不会被误提交；`outline.env.example` 才会进仓库。
+> `.outline.env` 与 `.env` 已加入 [`.gitignore`](.gitignore)，不会被误提交；`.outline.env.example` 才会进仓库。
 
 可选环境变量：
 
@@ -176,9 +176,9 @@ outline-docs-skill/
 │   ├── outline_cli.mjs
 │   └── lib/*.mjs
 ├── templates/            # 本地 markdown 写作模板 + meta.json
-├── outline.env.example   # 配置模板，复制为 outline.env 后填入真实值
+├── .outline.env.example  # 配置模板，复制为 .outline.env 后填入真实值
 ├── README.md             # 本文件（仓库说明；export-ignore，不进 skill 包）
-├── LICENSE               # MIT
+├── LICENSE               # MIT（export-ignore，不进 skill 包）
 ├── .gitignore
 └── .gitattributes
 ```

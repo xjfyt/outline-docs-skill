@@ -9,7 +9,7 @@ description: 全面管理 Outline 知识库。当用户要求查看 / 搜索 / �
 
 ## 0. 调用方式（必看）
 
-**环境变量**：`OUTLINE_BASE_URL`、`OUTLINE_API_KEY`（必需）。可放 `outline.env` / `.env`（cwd、skill 目录 或 `~/`）或直接 export；仓库根有 `outline.env.example` 可复制。
+**环境变量**：`OUTLINE_BASE_URL`、`OUTLINE_API_KEY`（必需）。可放 `.outline.env` / `.env`（cwd、skill 目录 或 `~/`）或直接 export；仓库根有 `.outline.env.example` 可复制。
 
 **统一入口**：
 

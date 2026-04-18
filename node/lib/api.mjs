@@ -13,13 +13,13 @@ export function loadEnv() {
   const home = os.homedir();
   const files = [
     // cwd（项目级覆盖，优先级最高）
-    "outline.env",
+    ".outline.env",
     ".env",
     // skill 目录（本仓库自带配置，介于 cwd 与 home 之间）
-    path.join(skill, "outline.env"),
+    path.join(skill, ".outline.env"),
     path.join(skill, ".env"),
     // 用户家目录
-    path.join(home, "outline.env"),
+    path.join(home, ".outline.env"),
     path.join(home, ".env"),
   ];
   const seen = new Set();
@@ -67,7 +67,7 @@ function ensureReady() {
   if (!BASE_URL || !API_KEY) {
     console.log(JSON.stringify({
       ok: false,
-      error: "Missing OUTLINE_BASE_URL or OUTLINE_API_KEY. Set them in env or in outline.env / .env (cwd, skill dir, or ~).",
+      error: "Missing OUTLINE_BASE_URL or OUTLINE_API_KEY. Set them in env or in .outline.env / .env (cwd, skill dir, or ~).",
     }));
     process.exit(1);
   }
