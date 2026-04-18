@@ -1,0 +1,63 @@
+{
+  "name": "api-endpoint",
+  "description": "HTTP 接口文档模板（标准内/外部 API 说明）",
+  "doc_title_format": "# {N}、{接口名称}",
+  "section_order": [
+    "接口说明",
+    "请求地址",
+    "请求方式",
+    "请求参数",
+    "返回值",
+    "请求示例",
+    "相关说明/注意事项"
+  ],
+  "required_sections": [
+    "接口说明",
+    "请求地址",
+    "请求方式",
+    "返回值"
+  ],
+  "optional_sections": [
+    "请求参数",
+    "请求示例",
+    "相关说明/注意事项"
+  ],
+  "heading_style": {
+    "level1": "# {n_cn}、{title}",
+    "level1_numbering": "中文数字（一、二、三、四、五、六、七…）",
+    "level2": "## **{n}、{title}**",
+    "level2_numbering": "阿拉伯数字 + 粗体",
+    "level3": "### （{n}）{title}",
+    "level3_numbering": "中文括号 + 阿拉伯数字"
+  },
+  "spacing_rule": "每个标题块之间必须留 1 个空行；段落之间也留空行；文档以一个换行结束。不要让标题与正文紧贴或多个标题连续无空行。",
+  "tables": {
+    "param_table_columns": ["名称", "类型", "必填", "说明", "示例"],
+    "return_table_columns": ["名称", "类型", "说明", "示例"]
+  },
+  "code_fence_lang": {
+    "url_or_path": "bash",
+    "http_method": "bash",
+    "curl_example": "bash",
+    "json_request_example": "json",
+    "json_response_example": "json"
+  },
+  "instructions_for_ai": [
+    "顶层文档标题与所有主章节都使用 H1（#）—— 这是该模板的特殊约定，不要把章节降级为 H2。",
+    "主章节按顺序：接口说明 → 请求地址 → 请求方式 → 请求参数 → 返回值 → 请求示例 → 相关说明/注意事项。可按需删减无内容的章节，但保留章节的顺序与命名不可改。",
+    "二级小节用粗体阿拉伯数字编号：## **1、Header参数**、## **2、路径参数**、## **3、Query参数**、## **4、Body参数**；接口若无某种参数，整段子节可省略。",
+    "三级小节用中文括号编号：### （1）说明、### （2）示例。",
+    "每个标题块之间必须空一行；段落与代码块、表格之间也都留空行。",
+    "code fence 用 ```bash 包裹 URL 路径、HTTP 方法、curl 命令；用 ```json 包裹 JSON 请求/响应示例。",
+    "请求参数表必须包含列：名称、类型、必填、说明、示例。返回值表去掉‘必填’列。",
+    "如果接口没有 Header / 路径 / Query / Body 参数中的某种，整个子节可整体省略，但保留下来的子节命名与编号顺序保持不变。",
+    "返回值默认按业务约定 code=10010 表示成功、10011 表示失败；如有不同约定按实际填写。",
+    "‘相关说明/注意事项’小节使用有序列表（1. 2. 3.），每条聚焦一个独立约束/注意点，避免长段落。"
+  ],
+  "lint_rules": {
+    "section_must_use_h1": true,
+    "subsection_must_use_h2_bold_arabic": true,
+    "sub_subsection_must_use_h3_chinese_paren": true,
+    "blank_line_between_blocks": true
+  }
+}
