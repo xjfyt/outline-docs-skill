@@ -30,13 +30,15 @@ description: 全面管理 Outline 知识库。当用户要求查看 / 搜索 / �
 | **接受 URL 也接受 ID** | 所有 `--id` / `--collection-id` / `--parent-document-id` 自动解析 Outline URL，无需手动抠 ID。 |
 | **默认输出"摘要"** | `list` / `view` / `search` 默认仅返回 `id/title/url/updatedAt/textPreview`。需要完整 JSON 时才加 `--full`。 |
 | **改文档优先增量** | 短改动用 `--mode patch`（替换片段），追加用 `--mode append`，**只有大幅改写才整篇 `replace`**。 |
-| **长内容走文件** | 用 `--text-file path.md` 而不是 `--text "..."`，避免转义与参数膨胀。 |
+| **长内容走文件并清理** | 用 `--text-file xx.md` 而不是 `--text "..."`。务必加上 `--clean-file` 标志，使 Skill 在成功上传后自动删除本地缓存文件。 |
 | **写接口文档先看模板** | `template show --name api-endpoint --body-only` → 撰写 → `document create` → `template lint` 自检。 |
 | **摘要长度可调** | 所有 `list/search/view` 支持 `--preview-len N`（0 = 只要标题+ID，不要正文预览，最省 token）。 |
 | **列表翻页用 `--all`** | `document list/search`、`collection documents`、`user list` 均支持 `--all`，自动翻页累积。 |
 | **报错读 hint 字段** | 错误 JSON 含 `hint` 中文提示，据此处理，不要盲目重试。 |
 | **未覆盖端点走 `api call`** | Outline 端点很多（stars/fileOperations/groups…），本 skill 没封装的直接 `api call --endpoint X --data '{...}'`。 |
 | **本地模板 ≠ 服务端模板** | 本 skill 的 `template` 子命令是**本地 markdown 写作模板**；Outline 服务端的"模板文档"要通过 `document create --template-id <服务端文档 ID>` 使用。 |
+| **文档排序注意逆序** | Outline 默认把最新建的文档放在同级最上方。如果要排版序列（如一、二、三），请**逆序创建**（先建三再建二，最后建一）。对于已混乱的层级，可使用 `collection reorder --id <coll> [--parent-document-id X] --sort-by title` 一键按标题排序。 |
+| **保持留白需插入 HTML** | Outline 导入 Markdown 会吞并多余空行。若要在各标题/模块间强制保留视觉空距，请不要单靠换行符，务必显式插入 `<br>` 标签作为空行占位。 |
 
 ## 2. 命令决策表（按场景选命令）
 
@@ -44,6 +46,7 @@ description: 全面管理 Outline 知识库。当用户要求查看 / 搜索 / �
 |---|---|
 | "看一下我有哪些集合" | `collection list` |
 | "看 X 集合下的文档" | `collection documents --id <coll>`（平铺）/ `collection tree --id <coll>`（树形） |
+| "将集合或某篇文档下的所有子文档批量排序" | `collection reorder --id <coll> [--parent-document-id <doc>] --sort-by title [--direction ASC/DESC]` |
 | "找标题含 xxx 的文档" | `document find --query "xxx" [--collection-id ...]` |
 | "全文搜 xxx" | `document search --query "xxx" [--titles-only]` |
 | "看这篇文档内容"（只要正文） | `document view --id <id-or-url> --text-only` |
