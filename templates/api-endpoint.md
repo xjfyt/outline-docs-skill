@@ -1,8 +1,12 @@
 # {N}、{接口名称}
 
+
+
 # 一、接口说明
 
 {用一两句话简要描述该接口的用途与所处业务场景。}
+
+
 
 # 二、请求地址
 
@@ -10,11 +14,15 @@
 {/api/v1/xxx/xxx/{path_param}}
 ```
 
+
+
 # 三、请求方式
 
 ```bash
 {POST | GET | PUT | DELETE}
 ```
+
+
 
 # 四、请求参数
 
@@ -23,6 +31,8 @@
 | 名称  | 类型  | 必填  | 说明  | 示例  |
 |-----|-----|-----|-----|-----|
 | X-M-Sign / Authorization | str | 是   | 密钥，请参考接口鉴权说明 | Bearer xxx 或 Sign xxx |
+
+
 
 ## **2、路径参数**
 
@@ -38,6 +48,8 @@
 {/api/v1/xxx/xxx/example_value}
 ```
 
+
+
 ## **3、Query参数**
 
 ### （1）说明
@@ -51,6 +63,8 @@
 ```bash
 {?key1=value1&key2=value2}
 ```
+
+
 
 ## **4、Body参数**
 
@@ -68,6 +82,8 @@
 }
 ```
 
+
+
 # 五、返回值
 
 ## 1、说明
@@ -79,6 +95,8 @@
 | request_id | str | 请求 ID | req-xxxxxxxxxxxx |
 | data | object | 业务返回数据 | {} |
 
+
+
 ## **2、返回值示例**
 
 ```json
@@ -89,6 +107,8 @@
   "data": {}
 }
 ```
+
+
 
 # 六、请求示例
 
@@ -102,6 +122,8 @@ curl --location --request POST 'http://127.0.0.1:10042/api/v1/xxx/xxx' \
   "field_name": "example_value"
 }'
 ```
+
+
 
 # 七、相关说明/注意事项
 
