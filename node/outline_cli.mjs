@@ -21,7 +21,7 @@ const HELP = `Outline API CLI (Node.js) —— 管理 Outline 知识库
 
 资源：
   auth        info | config
-  collection  list | view | create | update | delete | tree | documents
+  collection  list | view | create | update | delete | tree | documents | reorder
   document    list | view | create | update | delete | move | search | find
               | archive | restore | unpublish | duplicate | export | drafts | archived
   upload      单图上传（需 --filepath --document-id）

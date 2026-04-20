@@ -67,6 +67,56 @@ def handle_collection(args):
         else:
             print("\n".join(_walk_tree(nodes)))
 
+    elif args.action == "reorder":
+        cid = extract_id(args.id, "collection")
+        res = api_post("collections.documents", {"id": cid})
+        if isinstance(res, dict) and res.get("ok") is False:
+            print_json(res)
+            return
+
+        nodes = res.get("data") if isinstance(res, dict) else res
+        
+        target_nodes = None
+        pid = args.parent_document_id if hasattr(args, "parent_document_id") else None
+        if pid:
+            pid = extract_id(pid, "doc")
+            queue = list(nodes)
+            while queue:
+                curr = queue.pop(0)
+                if curr.get("id") == pid:
+                    target_nodes = curr.get("children") or []
+                    break
+                queue.extend(curr.get("children") or [])
+        else:
+            target_nodes = nodes
+            
+        if target_nodes is None:
+            print_json({"ok": False, "error": "未找到指定的 parent-document-id 或节点为空"})
+            return
+            
+        if not target_nodes:
+            print_json({"ok": True, "msg": "目录下无子文档可排序"})
+            return
+
+        sort_by = getattr(args, "sort_by", "title") or "title"
+        rev = getattr(args, "direction", "ASC") == "DESC"
+        # simple dict string sort
+        target_nodes.sort(key=lambda x: str(x.get(sort_by, "")), reverse=rev)
+
+        moved = []
+        for idx, n in enumerate(target_nodes):
+            payload = {
+                "id": n["id"],
+                "collectionId": cid,
+                "index": idx
+            }
+            if pid:
+                payload["parentDocumentId"] = pid
+            api_post("documents.move", payload)
+            moved.append(n.get("title"))
+            
+        print_json({"ok": True, "msg": f"成功重排 {len(moved)} 篇文档", "order": moved})
+
     elif args.action == "documents":
         # Flat list of all documents in a collection
         cid = extract_id(args.id, "collection")
@@ -86,10 +136,13 @@ def setup_collection_parser(subparsers):
     p = subparsers.add_parser("collection", help="文档集（Collection）管理")
     p.add_argument(
         "action",
-        choices=["list", "view", "create", "update", "delete", "tree", "documents"],
-        help="子操作；tree=层级结构, documents=该集合内文档列表",
+        choices=["list", "view", "create", "update", "delete", "tree", "documents", "reorder"],
+        help="子操作；tree=层级结构, documents=该集合内文档, reorder=批量重排文档",
     )
     p.add_argument("--id", help="Collection ID 或 URL")
+    p.add_argument("--parent-document-id", help="reorder: 若想对该文章下属子文档排序可指定此项")
+    p.add_argument("--sort-by", default="title", help="reorder: 依据什么排序，默认 title")
+    p.add_argument("--direction", choices=["ASC", "DESC"], default="ASC", help="reorder: 排序方向")
     p.add_argument("--name", help="集合名")
     p.add_argument("--description", help="集合描述")
     p.add_argument("--private", action="store_true", help="设为私有集合")
