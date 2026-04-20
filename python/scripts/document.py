@@ -66,6 +66,10 @@ def handle_document(args):
             payload["templateId"] = extract_id(args.template_id, "doc")
         res = api_post("documents.create", payload)
         render_response(res, summarizer=summarize_doc, full=args.full, args=args)
+        if getattr(args, "clean_file", False) and getattr(args, "text_file", None):
+            if isinstance(res, dict) and res.get("ok", True) is not False:
+                try: os.remove(args.text_file)
+                except Exception: pass
 
     elif args.action == "update":
         doc_id = extract_id(args.id, "doc")
@@ -104,6 +108,10 @@ def handle_document(args):
 
         res = api_post("documents.update", payload)
         render_response(res, summarizer=summarize_doc, full=args.full, args=args)
+        if getattr(args, "clean_file", False) and getattr(args, "text_file", None):
+            if isinstance(res, dict) and res.get("ok", True) is not False:
+                try: os.remove(args.text_file)
+                except Exception: pass
 
     elif args.action == "delete":
         doc_id = extract_id(args.id, "doc")
@@ -230,6 +238,7 @@ def setup_document_parser(subparsers):
     p.add_argument("--title", help="文档标题")
     p.add_argument("--text", help="Markdown 内容")
     p.add_argument("--text-file", help="从文件读取 Markdown 内容（推荐用于长内容）")
+    p.add_argument("--clean-file", action="store_true", help="如果存在 --text-file，执行成功后自动删除本地临时文件（供 AI 使用）")
     p.add_argument("--parent-document-id", help="父文档 ID 或 URL")
     p.add_argument("--query", help="搜索关键词（search/find）")
     p.add_argument("--titles-only", action="store_true", help="search：仅按标题搜索（更快）")

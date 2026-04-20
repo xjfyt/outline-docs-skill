@@ -55,7 +55,11 @@ export async function handleDocument(action, f) {
       if (f.parentDocumentId) p.parentDocumentId = extractId(f.parentDocumentId, "doc");
       if (f.icon) p.icon = f.icon;
       if (f.templateId) p.templateId = extractId(f.templateId, "doc");
-      renderResponse(await apiPost("documents.create", p), summarizeDoc, f.full, f);
+      const res = await apiPost("documents.create", p);
+      renderResponse(res, summarizeDoc, f.full, f);
+      if (f.cleanFile && f.textFile && res && res.ok !== false) {
+        try { fs.unlinkSync(f.textFile); } catch (e) {}
+      }
       return;
     }
     case "update": {
@@ -82,7 +86,11 @@ export async function handleDocument(action, f) {
       }
       if (f.publish) p.publish = true;
       if (f.done) p.done = true;
-      renderResponse(await apiPost("documents.update", p), summarizeDoc, f.full, f);
+      const res = await apiPost("documents.update", p);
+      renderResponse(res, summarizeDoc, f.full, f);
+      if (f.cleanFile && f.textFile && res && res.ok !== false) {
+        try { fs.unlinkSync(f.textFile); } catch (e) {}
+      }
       return;
     }
     case "delete": {
