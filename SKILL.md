@@ -9,7 +9,7 @@ description: 全面管理 Outline 知识库。当用户要求查看 / 搜索 / �
 
 ## 0. 调用方式（必看）
 
-**环境变量**：`OUTLINE_BASE_URL`、`OUTLINE_API_KEY`（必需）。可放 `.outline.env` / `.env`（cwd、skill 目录 或 `~/`）或直接 export；仓库根有 `.outline.env.example` 可复制。
+**环境变量**：`OUTLINE_BASE_URL`、`OUTLINE_API_KEY`（必需）。程序会优先在用户家目录下查找 `.outline.env` / `.env`，若没有再去依次检查当前运行目录及 skill 目录。若全未发现配置，则会提醒用户。配置项亦可直接用 export 呈现；仓库根有 `.outline.env.example` 可供参考。
 
 **统一入口**：
 
@@ -31,7 +31,7 @@ description: 全面管理 Outline 知识库。当用户要求查看 / 搜索 / �
 | **默认输出"摘要"** | `list` / `view` / `search` 默认仅返回 `id/title/url/updatedAt/textPreview`。需要完整 JSON 时才加 `--full`。 |
 | **改文档优先增量** | 短改动用 `--mode patch`（替换片段），追加用 `--mode append`，**只有大幅改写才整篇 `replace`**。 |
 | **长内容走文件并清理** | 用 `--text-file xx.md` 而不是 `--text "..."`。务必加上 `--clean-file` 标志，使 Skill 在成功上传后自动删除本地缓存文件。 |
-| **写接口文档先看模板** | `template show --name api-endpoint --body-only` → 撰写 → `document create` → `template lint` 自检。 |
+| **开始写文档前必须先找模板** | **重点强调**：在编写任何文档之前，**必须先确定文档类型**，然后去查找对应的模板（参考 \`template list\`）。**只有在实在找不到合适模板的情况下，才可以自由发挥**。例如写接口文档：\`template show --name api-endpoint --body-only\` → 撰写 → \`document create\` → \`template lint\` 自检。 |
 | **摘要长度可调** | 所有 `list/search/view` 支持 `--preview-len N`（0 = 只要标题+ID，不要正文预览，最省 token）。 |
 | **列表翻页用 `--all`** | `document list/search`、`collection documents`、`user list` 均支持 `--all`，自动翻页累积。 |
 | **报错读 hint 字段** | 错误 JSON 含 `hint` 中文提示，据此处理，不要盲目重试。 |

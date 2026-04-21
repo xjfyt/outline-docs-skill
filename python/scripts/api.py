@@ -14,15 +14,15 @@ def load_env():
     home = os.path.expanduser("~")
     skill = _skill_dir()
     env_files = [
-        # cwd（项目级覆盖，优先级最高）
-        ".outline.env",
-        ".env",
-        # skill 目录（本仓库自带配置，介于 cwd 与 home 之间）
-        os.path.join(skill, ".outline.env"),
-        os.path.join(skill, ".env"),
-        # 用户家目录
+        # 用户家目录（优先级最高）
         os.path.join(home, ".outline.env"),
         os.path.join(home, ".env"),
+        # cwd（项目级覆盖）
+        ".outline.env",
+        ".env",
+        # skill 目录（本仓库自带配置）
+        os.path.join(skill, ".outline.env"),
+        os.path.join(skill, ".env"),
     ]
     seen = set()
     for env_file in env_files:
@@ -30,7 +30,7 @@ def load_env():
         if env_file in seen or not os.path.exists(env_file):
             continue
         seen.add(env_file)
-        with open(env_file, "r") as f:
+        with open(env_file, "r", encoding="utf-8") as f:
             for line in f:
                 if "=" in line and not line.strip().startswith("#"):
                     key, value = line.strip().split("=", 1)
@@ -65,11 +65,17 @@ def _ensure_ready():
     """Lazy-load httpx + validate env. Allows non-network commands to run without setup."""
     global _client
     if not BASE_URL or not API_KEY:
+        home_env = os.path.join(os.path.expanduser("~"), ".outline.env")
+        msg = (
+            f"未找到环境配置。系统已优先检查过用户目录 ({home_env})，"
+            "并依次查找了当前执行目录及 Skill 目录，但均未发现 .outline.env 或 .env 文件。\\n"
+            "请在用户目录下创建 .outline.env，并填入 OUTLINE_BASE_URL 和 OUTLINE_API_KEY 进行配置。"
+        )
         print(
             json.dumps(
                 {
                     "ok": False,
-                    "error": "Missing OUTLINE_BASE_URL or OUTLINE_API_KEY. Set them in env or in .outline.env / .env (cwd, skill dir, or ~).",
+                    "error": msg,
                 },
                 ensure_ascii=False,
             )

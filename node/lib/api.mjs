@@ -12,15 +12,15 @@ export function loadEnv() {
   const skill = skillDir();
   const home = os.homedir();
   const files = [
-    // cwd（项目级覆盖，优先级最高）
-    ".outline.env",
-    ".env",
-    // skill 目录（本仓库自带配置，介于 cwd 与 home 之间）
-    path.join(skill, ".outline.env"),
-    path.join(skill, ".env"),
-    // 用户家目录
+    // 用户家目录（优先级最高）
     path.join(home, ".outline.env"),
     path.join(home, ".env"),
+    // cwd（项目级覆盖）
+    ".outline.env",
+    ".env",
+    // skill 目录（本仓库自带配置）
+    path.join(skill, ".outline.env"),
+    path.join(skill, ".env"),
   ];
   const seen = new Set();
   for (const f of files) {
@@ -65,9 +65,11 @@ const HINTS = {
 
 function ensureReady() {
   if (!BASE_URL || !API_KEY) {
+    const homeEnv = path.join(os.homedir(), ".outline.env");
+    const msg = `未找到环境配置。系统已优先检查过用户目录 (${homeEnv})，并依次查找了当前执行目录及 Skill 目录，但均未发现 .outline.env 或 .env 文件。\n请在用户目录下创建 .outline.env，并填入 OUTLINE_BASE_URL 和 OUTLINE_API_KEY 进行配置。`;
     console.log(JSON.stringify({
       ok: false,
-      error: "Missing OUTLINE_BASE_URL or OUTLINE_API_KEY. Set them in env or in .outline.env / .env (cwd, skill dir, or ~).",
+      error: msg,
     }));
     process.exit(1);
   }
