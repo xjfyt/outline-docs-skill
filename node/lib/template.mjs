@@ -15,12 +15,27 @@ function allTemplateDirs() {
   return dirs;
 }
 
+function walkDirs(dir, fileList = []) {
+  if (!fs.existsSync(dir)) return fileList;
+  const files = fs.readdirSync(dir, { withFileTypes: true });
+  for (const file of files) {
+    if (file.isDirectory()) {
+      walkDirs(path.join(dir, file.name), fileList);
+    } else {
+      fileList.push(path.join(dir, file.name));
+    }
+  }
+  return fileList;
+}
+
 function loadTemplate(name) {
   for (const d of allTemplateDirs()) {
-    const md = path.join(d, `${name}.md`);
-    if (!fs.existsSync(md)) continue;
+    if (!fs.existsSync(d)) continue;
+    const allFiles = walkDirs(d);
+    const md = allFiles.find((f) => path.basename(f) === `${name}.md`);
+    if (!md) continue;
     const content = fs.readFileSync(md, "utf8");
-    const metaPath = path.join(d, `${name}.meta.json`);
+    const metaPath = md.replace(/\.md$/, ".meta.json");
     let meta = null;
     if (fs.existsSync(metaPath)) {
       try { meta = JSON.parse(fs.readFileSync(metaPath, "utf8")); }
@@ -35,18 +50,21 @@ function listTemplates() {
   const seen = new Map();
   for (const d of allTemplateDirs()) {
     if (!fs.existsSync(d)) continue;
-    const files = fs.readdirSync(d).filter((f) => f.endsWith(".md")).sort();
-    for (const file of files) {
+    const allFiles = walkDirs(d).filter((f) => f.endsWith(".md")).sort();
+    for (const file of allFiles) {
       const name = path.basename(file, ".md");
       if (name.toLowerCase() === "readme") continue;
       if (seen.has(name)) continue;
-      const metaPath = path.join(d, `${name}.meta.json`);
+      const metaPath = file.replace(/\.md$/, ".meta.json");
       let description = "";
       if (fs.existsSync(metaPath)) {
         try { description = JSON.parse(fs.readFileSync(metaPath, "utf8")).description || ""; }
         catch {}
       }
-      seen.set(name, { name, description, source: d });
+      let category = path.relative(d, path.dirname(file));
+      if (category === "") category = "";
+      else category = category.replace(/\\/g, "/");
+      seen.set(name, { name, category, description, source: path.dirname(file) });
     }
   }
   return [...seen.values()];

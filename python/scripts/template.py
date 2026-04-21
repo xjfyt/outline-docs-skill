@@ -30,19 +30,22 @@ def _all_template_dirs():
 def _load_template(name):
     """返回 (md_path, md_content, meta_dict_or_None)。找不到时返回 (None, None, None)。"""
     for d in _all_template_dirs():
-        md = os.path.join(d, f"{name}.md")
-        if os.path.exists(md):
-            with open(md, "r", encoding="utf-8") as f:
-                content = f.read()
-            meta_path = os.path.join(d, f"{name}.meta.json")
-            meta = None
-            if os.path.exists(meta_path):
-                with open(meta_path, "r", encoding="utf-8") as f:
-                    try:
-                        meta = json.load(f)
-                    except json.JSONDecodeError as e:
-                        meta = {"_meta_parse_error": str(e)}
-            return md, content, meta
+        if not os.path.isdir(d):
+            continue
+        for root, dirs, files in os.walk(d):
+            if f"{name}.md" in files:
+                md = os.path.join(root, f"{name}.md")
+                with open(md, "r", encoding="utf-8") as f:
+                    content = f.read()
+                meta_path = os.path.join(root, f"{name}.meta.json")
+                meta = None
+                if os.path.exists(meta_path):
+                    with open(meta_path, "r", encoding="utf-8") as f:
+                        try:
+                            meta = json.load(f)
+                        except json.JSONDecodeError as e:
+                            meta = {"_meta_parse_error": str(e)}
+                return md, content, meta
     return None, None, None
 
 
@@ -51,22 +54,29 @@ def _list_templates():
     for d in _all_template_dirs():
         if not os.path.isdir(d):
             continue
-        for path in sorted(glob.glob(os.path.join(d, "*.md"))):
-            name = os.path.splitext(os.path.basename(path))[0]
-            if name.lower() == "readme":
-                continue
-            if name in seen:
-                continue
-            meta_path = os.path.join(d, f"{name}.meta.json")
-            desc = ""
-            if os.path.exists(meta_path):
-                try:
-                    with open(meta_path, "r", encoding="utf-8") as f:
-                        meta = json.load(f)
-                    desc = meta.get("description", "")
-                except Exception:
-                    pass
-            seen[name] = {"name": name, "description": desc, "source": d}
+        for root, dirs, files in os.walk(d):
+            for file in sorted(files):
+                if file.endswith(".md"):
+                    name = file[:-3]
+                    if name.lower() == "readme":
+                        continue
+                    if name in seen:
+                        continue
+                    meta_path = os.path.join(root, f"{name}.meta.json")
+                    desc = ""
+                    if os.path.exists(meta_path):
+                        try:
+                            with open(meta_path, "r", encoding="utf-8") as f:
+                                meta = json.load(f)
+                            desc = meta.get("description", "")
+                        except Exception:
+                            pass
+                    category = os.path.relpath(root, d)
+                    if category == ".":
+                        category = ""
+                    else:
+                        category = category.replace("\\", "/")
+                    seen[name] = {"name": name, "category": category, "description": desc, "source": root}
     return list(seen.values())
 
 
