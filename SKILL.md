@@ -31,6 +31,8 @@ description: 全面管理 Outline 知识库。当用户要求查看 / 搜索 / �
 | **默认输出"摘要"** | `list` / `view` / `search` 默认仅返回 `id/title/url/updatedAt/textPreview`。需要完整 JSON 时才加 `--full`。 |
 | **改文档优先增量** | 短改动用 `--mode patch`（替换片段），追加用 `--mode append`，**只有大幅改写才整篇 `replace`**。 |
 | **长内容走文件并清理** | 用 `--text-file xx.md` 而不是 `--text "..."`。务必加上 `--clean-file` 标志，使 Skill 在成功上传后自动删除本地缓存文件。 |
+| **编写文档前先探查结构** | 如果用户提供链接要求在该处进行文档编写，**必须**先使用 `collection tree` 或 `document view` 等命令探查该链接处的目录树结构，搞清其**上下最少两层**的父子文档上下文。理清“当前位置在哪里、上下文中有些什么文档”后，再根据实际项目情况进行编写。 |
+| **API 文档与模块组织结构** | 一般情况下遵循**“一个接口一文档”**的粒度。如果多个接口同属一个模块，则**必须先建立该模块的“主文档”**，在其中说明该模块的大致功能、调用流程（及模块间的联系等），然后再在模块主文档之下（作为其子文档）逐一创建具体的接口文档，以此类推。 |
 | **开始写文档前必须先找模板** | **重点强调**：在编写任何文档之前，**必须先确定文档类型**，然后去查找对应的模板（参考 \`template list\`）。**只有在实在找不到合适模板的情况下，才可以自由发挥**。例如写接口文档：\`template show --name api-endpoint --body-only\` → 撰写 → \`document create\` → \`template lint\` 自检。 |
 | **摘要长度可调** | 所有 `list/search/view` 支持 `--preview-len N`（0 = 只要标题+ID，不要正文预览，最省 token）。 |
 | **列表翻页用 `--all`** | `document list/search`、`collection documents`、`user list` 均支持 `--all`，自动翻页累积。 |
@@ -38,7 +40,7 @@ description: 全面管理 Outline 知识库。当用户要求查看 / 搜索 / �
 | **未覆盖端点走 `api call`** | Outline 端点很多（stars/fileOperations/groups…），本 skill 没封装的直接 `api call --endpoint X --data '{...}'`。 |
 | **本地模板 ≠ 服务端模板** | 本 skill 的 `template` 子命令是**本地 markdown 写作模板**；Outline 服务端的"模板文档"要通过 `document create --template-id <服务端文档 ID>` 使用。 |
 | **文档排序注意逆序** | Outline 默认把最新建的文档放在同级最上方。如果要排版序列（如一、二、三），请**逆序创建**（先建三再建二，最后建一）。对于已混乱的层级，可使用 `collection reorder --id <coll> [--parent-document-id X] --sort-by title` 一键按标题排序。 |
-| **保持留白需插入 HTML** | Outline 导入 Markdown 会吞并多余空行。若要在各标题/模块间强制保留视觉空距，请不要单靠换行符，务必显式插入 `<br>` 标签作为空行占位。 |
+| **保持留白需插入占位符** | Outline 导入 Markdown 会吞并多余的自然空行。若要在各标题/模块间强制保留视觉空距，请不要单靠换行符，务必显式插入 `&nbsp;` 作为空行占位（注意前后换行），以确保渲染出等宽行距。 |
 
 ## 2. 命令决策表（按场景选命令）
 
