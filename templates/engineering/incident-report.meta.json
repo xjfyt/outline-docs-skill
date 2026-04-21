@@ -1,0 +1,13 @@
+{
+  "description": "研发线上故障复盘与改进项模板",
+  "required_sections": [
+    "故障概要",
+    "时间线",
+    "根因分析",
+    "改进项"
+  ],
+  "lint_rules": {
+    "section_must_use_h1": true,
+    "blank_line_between_blocks": true
+  }
+}

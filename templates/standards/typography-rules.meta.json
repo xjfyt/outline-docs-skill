@@ -1,0 +1,13 @@
+{
+  "description": "Markdown 排版、块引用与空行规范",
+  "required_sections": [
+    "标题映射",
+    "警示块",
+    "留白",
+    "代码块"
+  ],
+  "lint_rules": {
+    "section_must_use_h1": true,
+    "blank_line_between_blocks": true
+  }
+}

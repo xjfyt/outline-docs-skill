@@ -1,0 +1,13 @@
+{
+  "description": "研发架构设计与技术方案模板",
+  "required_sections": [
+    "背景与目标",
+    "架构设计",
+    "接口",
+    "排期"
+  ],
+  "lint_rules": {
+    "section_must_use_h1": true,
+    "blank_line_between_blocks": true
+  }
+}

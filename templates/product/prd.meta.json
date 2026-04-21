@@ -1,0 +1,13 @@
+{
+  "description": "标准产品需求文档模板",
+  "required_sections": [
+    "需求背景",
+    "功能详述",
+    "异常链路",
+    "埋点要求"
+  ],
+  "lint_rules": {
+    "section_must_use_h1": true,
+    "blank_line_between_blocks": true
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "name": "api-endpoint",
+  "description": "HTTP 接口文档模板（标准内/外部 API 说明）",
+  "doc_title_format": "# {模块编号}、{接口名称}",
+  "section_order": [
+    "请求地址",
+    "请求参数",
+    "返回值",
+    "请求示例",
+    "相关说明与注意事项"
+  ],
+  "required_sections": [
+    "请求地址",
+    "返回值"
+  ],
+  "optional_sections": [
+    "请求参数",
+    "请求示例",
+    "相关说明与注意事项"
+  ],
+  "heading_style": {
+    "level1": "# {title}（整个文档唯一的H1大标题）",
+    "level2": "## {n_cn}、{title}（例如：## 一、请求参数）",
+    "level3": "### {n}、{title}（例如：### 1、Header鉴权）"
+  },
+  "tables": {
+    "param_table_columns": ["名称", "类型", "必填", "说明", "示例"],
+    "return_table_columns": ["名称", "类型", "说明", "示例"]
+  },
+  "code_fence_lang": {
+    "url_or_path": "bash",
+    "curl_example": "bash",
+    "json_request_example": "json",
+    "json_response_example": "json"
+  },
+  "instructions_for_ai": [
+    "务必遵循排版规范，文档开头只保留唯一的一个 H1 (`#`) 作为文档标题名。",
+    "主干章节必须全数降级为 H2 (`## 一、XXX`)，参数等小段落使用 H3 (`### 1、XXX`)。",
+    "不要使用 `<br>`，段与段之间只需保留一个自然空行即可（系统在导入 Outline 时会自动转换呈现正确的间距，手动嵌入 <br> 反而会产生难看的过分留白）。",
+    "文档增加 FormData 表单支持。若当前接口不需要这层参数区块（如无 Query 或无 FormData），请将其对应的 H3 小节和表格整个忽略/删除。",
+    "请求参数表格必须包括这五列：名称、类型、必填、说明、示例。返回值表格去掉‘必填’列。",
+    "如果在回答中提供了具体接口数据，请务必保证表格对齐美观无错位。"
+  ],
+  "lint_rules": {
+    "section_must_use_h1": false,
+    "blank_line_between_blocks": true
+  }
+}

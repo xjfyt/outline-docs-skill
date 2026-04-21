@@ -1,0 +1,12 @@
+{
+  "description": "Outline 集合 (Collection) 规划、权限与排序规范",
+  "required_sections": [
+    "核心原则",
+    "配置规则",
+    "目录排序"
+  ],
+  "lint_rules": {
+    "section_must_use_h1": true,
+    "blank_line_between_blocks": true
+  }
+}

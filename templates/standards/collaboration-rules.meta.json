@@ -1,0 +1,12 @@
+{
+  "description": "文档评论、归档清理与所有权生命周期管理",
+  "required_sections": [
+    "责任制",
+    "沟通",
+    "无情重构与废弃"
+  ],
+  "lint_rules": {
+    "section_must_use_h1": true,
+    "blank_line_between_blocks": true
+  }
+}

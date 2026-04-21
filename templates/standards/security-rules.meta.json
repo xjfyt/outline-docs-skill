@@ -1,0 +1,12 @@
+{
+  "description": "知识库的公网分享、内外限制及 View-only 赋权准则",
+  "required_sections": [
+    "内外域安全",
+    "外部人员",
+    "重要模块修改"
+  ],
+  "lint_rules": {
+    "section_must_use_h1": true,
+    "blank_line_between_blocks": true
+  }
+}

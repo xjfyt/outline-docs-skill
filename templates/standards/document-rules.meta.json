@@ -1,0 +1,13 @@
+{
+  "description": "单篇文档生命周期与摘要规范",
+  "required_sections": [
+    "标题设计",
+    "标签",
+    "摘要",
+    "状态"
+  ],
+  "lint_rules": {
+    "section_must_use_h1": true,
+    "blank_line_between_blocks": true
+  }
+}

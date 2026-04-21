@@ -1,0 +1,13 @@
+{
+  "description": "内容主旨、术语表与多媒体配图使用规范",
+  "required_sections": [
+    "结论推演",
+    "黑话拦截",
+    "视觉与图文",
+    "超链接"
+  ],
+  "lint_rules": {
+    "section_must_use_h1": true,
+    "blank_line_between_blocks": true
+  }
+}
