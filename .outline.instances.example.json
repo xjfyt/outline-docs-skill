@@ -1,5 +1,6 @@
 {
   "default": "mishu",
+  "dangerousOperationProtection": false,
   "instances": {
     "mishu": {
       "displayName": "咪鼠文档管理平台",

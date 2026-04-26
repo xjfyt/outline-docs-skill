@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import { apiPost, extractId, paginateAll } from "./api.mjs";
+import { apiPost, extractId, paginateAll, requireDangerConfirmation } from "./api.mjs";
 import { renderResponse, summarizeDoc, printJson } from "./utils.mjs";
 
 function readTextArg(f) {
@@ -68,7 +68,10 @@ export async function handleDocument(action, f) {
       if (mode === "replace") {
         if (f.title) p.title = f.title;
         const t = readTextArg(f);
-        if (t !== undefined) p.text = t;
+        if (t !== undefined) {
+          requireDangerConfirmation("document update --mode replace", f);
+          p.text = t;
+        }
       } else if (mode === "append") {
         const t = readTextArg(f);
         if (t === undefined) die("append 模式需要 --text 或 --text-file");
@@ -95,7 +98,10 @@ export async function handleDocument(action, f) {
     }
     case "delete": {
       const p = { id: extractId(f.id, "doc") };
-      if (f.permanent) p.permanent = true;
+      if (f.permanent) {
+        requireDangerConfirmation("document delete --permanent", f);
+        p.permanent = true;
+      }
       renderResponse(await apiPost("documents.delete", p), null, true);
       return;
     }

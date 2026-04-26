@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { apiPost, extractId } from "./api.mjs";
+import { apiPost, extractId, requireDangerConfirmation } from "./api.mjs";
 import { uploadImageForDocument } from "./attachment.mjs";
 import { printJson } from "./utils.mjs";
 
@@ -96,6 +96,9 @@ export async function handleUploadDir(_action, f) {
   const collectionId = extractId(f.collectionId, "collection");
   const delay = f.delay ? parseFloat(f.delay) : 1.0;
   const dryRun = !!f.dryRun;
+  if (!dryRun) {
+    requireDangerConfirmation("upload_dir 非 dry-run 批量上传", f);
+  }
   const ignorePatterns = [...DEFAULT_IGNORES, ...(f.ignore || [])];
   const actions = [];
 

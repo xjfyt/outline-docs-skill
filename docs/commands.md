@@ -11,15 +11,19 @@
 bash bin/run.sh --instance family auth info
 bash bin/run.sh document list --instance "家庭文档管理平台"
 OUTLINE_INSTANCE=咪鼠 bash bin/run.sh collection list
+bash bin/run.sh auth instances
 ```
 
 `--instance` / `OUTLINE_INSTANCE` 可使用配置 key、`displayName` 或 `aliases`。
+
+`.outline.instances.json` 顶层可设置 `dangerousOperationProtection: true`。默认关闭；开启后，整篇替换正文、永久删除、非 dry-run 批量上传需要额外添加 `--confirm` 或 `--confirm-dangerous`。
 
 ## auth — 健康检查
 
 ```bash
 bash bin/run.sh auth info       # 当前工作区与 user
 bash bin/run.sh auth config     # 完整 auth 配置
+bash bin/run.sh auth instances  # 本地实例配置概览（不联网，不输出完整 API key）
 ```
 
 ## collection — 文档集
@@ -63,6 +67,7 @@ bash bin/run.sh document update --id <id|url> --mode append --text "追加段落
 bash bin/run.sh document update --id <id|url> --mode replace [--title ...] --text-file new.md
 bash bin/run.sh document update --id <id|url> --publish    # 草稿转发布
 bash bin/run.sh document update --id <id|url> --done       # 标记完成
+# 若 dangerousOperationProtection=true，replace 正文需额外加 --confirm。
 
 # 生命周期
 bash bin/run.sh document archive    --id <id|url>
@@ -71,6 +76,7 @@ bash bin/run.sh document unpublish  --id <id|url>
 bash bin/run.sh document duplicate  --id <id|url> [--title ...] [--collection-id ...] [--parent-document-id ...]
 bash bin/run.sh document move       --id <id|url> [--collection-id ...] [--parent-document-id ...]
 bash bin/run.sh document delete     --id <id|url> [--permanent]
+# 若 dangerousOperationProtection=true，--permanent 需额外加 --confirm。
 
 # 导出
 bash bin/run.sh document export --id <id|url> [--output out.md]
@@ -88,6 +94,7 @@ bash bin/run.sh upload --filepath ./image.png --document-id <id|url>
 ```bash
 bash bin/run.sh upload_dir --dir ./docs --collection-id <id|url> \
        [--dry-run] [--delay 1.0] [--ignore "*.tmp" --ignore "draft_*"]
+# 若 dangerousOperationProtection=true，非 dry-run 上传需额外加 --confirm。
 ```
 
 行为：

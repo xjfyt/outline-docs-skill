@@ -2,7 +2,14 @@
 import os
 import platform
 import sys
-from .api import api_post, BASE_URL, CURRENT_INSTANCE
+from .api import (
+    api_post,
+    BASE_URL,
+    CONFIG_ERROR,
+    CURRENT_INSTANCE,
+    DANGEROUS_OPERATION_PROTECTION,
+    INSTANCE_SUMMARIES,
+)
 from .utils import print_json, render_response
 
 SKILL_VERSION = "1.2.0"
@@ -37,6 +44,7 @@ def handle_auth(args):
                 "ok": True,
                 "baseUrl": BASE_URL,
                 "outlineInstance": CURRENT_INSTANCE,
+                "dangerousOperationProtection": DANGEROUS_OPERATION_PROTECTION,
                 "skillVersion": SKILL_VERSION,
                 "runtime": _runtime_info(),
                 "user": {
@@ -54,9 +62,21 @@ def handle_auth(args):
         )
     elif args.action == "config":
         render_response(api_post("auth.config"), full=True)
+    elif args.action == "instances":
+        if CONFIG_ERROR:
+            print_json({"ok": False, "error": CONFIG_ERROR})
+            sys.exit(1)
+        print_json(
+            {
+                "ok": True,
+                "dangerousOperationProtection": DANGEROUS_OPERATION_PROTECTION,
+                "current": CURRENT_INSTANCE,
+                "items": INSTANCE_SUMMARIES,
+            }
+        )
 
 
 def setup_auth_parser(subparsers):
     p = subparsers.add_parser("auth", help="检查认证 / 当前工作区信息")
-    p.add_argument("action", choices=["info", "config"])
+    p.add_argument("action", choices=["info", "config", "instances"])
     p.set_defaults(func=handle_auth)

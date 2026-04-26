@@ -102,6 +102,7 @@ cp .outline.env.example .outline.env
 ```json
 {
   "default": "mishu",
+  "dangerousOperationProtection": false,
   "instances": {
     "mishu": {
       "displayName": "咪鼠文档管理平台",
@@ -124,11 +125,18 @@ bash bin/run.sh auth info                    # 使用 default 指向的默认实
 bash bin/run.sh --instance family auth info
 bash bin/run.sh document list --instance "家庭文档管理平台"
 OUTLINE_INSTANCE=咪鼠 bash bin/run.sh collection list
+bash bin/run.sh auth instances
 ```
 
 `--instance` / `OUTLINE_INSTANCE` 可使用配置 key、`displayName` 或 `aliases`。`.outline.instances.json` 的查找位置：`~/.outline.instances.json`、`<cwd>/.outline.instances.json`、`<skill>/.outline.instances.json`。也可以用 `OUTLINE_INSTANCES_FILE=/path/to/file.json` 指定路径。
 
 > `.outline.instances.json` 已加入 [`.gitignore`](.gitignore)，可放真实密钥；示例文件才会提交。
+
+`dangerousOperationProtection` 默认 `false`。设为 `true` 后，以下危险操作需要额外添加 `--confirm` 或 `--confirm-dangerous`：
+
+- `document update --mode replace` 且实际替换正文
+- `document delete --permanent`
+- `upload_dir` 非 `--dry-run` 批量上传
 
 可选环境变量：
 
@@ -150,6 +158,7 @@ OUTLINE_INSTANCE=咪鼠 bash bin/run.sh collection list
 
 ```bash
 bash bin/run.sh auth info
+bash bin/run.sh auth instances
 ```
 
 成功响应大致长这样（含运行时与 skill 版本）：

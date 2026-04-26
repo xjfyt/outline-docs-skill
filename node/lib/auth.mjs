@@ -1,5 +1,12 @@
 import os from "node:os";
-import { apiPost, BASE_URL, CURRENT_INSTANCE } from "./api.mjs";
+import {
+  apiPost,
+  BASE_URL,
+  CONFIG_ERROR,
+  CURRENT_INSTANCE,
+  DANGEROUS_OPERATION_PROTECTION,
+  INSTANCE_SUMMARIES,
+} from "./api.mjs";
 import { printJson } from "./utils.mjs";
 
 const SKILL_VERSION = "1.2.0";
@@ -24,6 +31,7 @@ export async function handleAuth(action, _flags) {
       ok: true,
       baseUrl: BASE_URL,
       outlineInstance: CURRENT_INSTANCE,
+      dangerousOperationProtection: DANGEROUS_OPERATION_PROTECTION,
       skillVersion: SKILL_VERSION,
       runtime: runtimeInfo(),
       user: { id: user.id, name: user.name, email: user.email, role: user.role },
@@ -31,8 +39,19 @@ export async function handleAuth(action, _flags) {
     });
   } else if (action === "config") {
     printJson(await apiPost("auth.config"));
+  } else if (action === "instances") {
+    if (CONFIG_ERROR) {
+      printJson({ ok: false, error: CONFIG_ERROR });
+      process.exit(1);
+    }
+    printJson({
+      ok: true,
+      dangerousOperationProtection: DANGEROUS_OPERATION_PROTECTION,
+      current: CURRENT_INSTANCE,
+      items: INSTANCE_SUMMARIES,
+    });
   } else {
-    printJson({ ok: false, error: "未知 auth 动作；可用：info, config" });
+    printJson({ ok: false, error: "未知 auth 动作；可用：info, config, instances" });
     process.exit(2);
   }
 }

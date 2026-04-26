@@ -13,6 +13,10 @@ description: 全面管理 Outline 知识库。当用户要求查看 / 搜索 / �
 
 **多实例**：可用 `.outline.instances.json` 给默认实例命名并配置其它 Outline。默认实例仍使用 `OUTLINE_BASE_URL` / `OUTLINE_API_KEY`；其它实例在 `instances` 内配置 `baseUrl` / `apiKey`。选择实例用 `--instance <name>`（可放命令任意位置）或 `OUTLINE_INSTANCE=<name>`，`<name>` 可是配置 key、`displayName` 或 `aliases`。若用户明确指定某个 Outline 实例 / 文档平台名，后续命令必须带上对应 `--instance`。
 
+**实例检查**：需要确认当前可用实例或名称映射时，用 `auth instances`，该命令不联网且不会输出完整 API key。
+
+**危险操作保护**：`.outline.instances.json` 可设置 `dangerousOperationProtection: true`，默认关闭。开启后，`document update --mode replace`（替换正文）、`document delete --permanent`、非 dry-run 的 `upload_dir` 必须显式加 `--confirm` 或 `--confirm-dangerous`。
+
 **统一入口**：
 
 | 平台 | 命令 |
@@ -31,6 +35,8 @@ description: 全面管理 Outline 知识库。当用户要求查看 / 搜索 / �
 |---|---|
 | **接受 URL 也接受 ID** | 所有 `--id` / `--collection-id` / `--parent-document-id` 自动解析 Outline URL，无需手动抠 ID。 |
 | **多实例必须显式选择** | 默认走环境变量里的默认实例；用户提到某个实例名、平台名、`displayName` 或别名时，在命令中加 `--instance "<用户提到的名称>"`，避免误写到默认实例。 |
+| **先确认实例映射** | 如果用户说的是自然语言平台名且你不确定映射，先运行 `auth instances`，确认后再写入。 |
+| **危险操作尊重保护开关** | 若返回提示危险操作需要确认，必须向用户确认意图后重跑并加 `--confirm`，不要绕过保护。 |
 | **默认输出"摘要"** | `list` / `view` / `search` 默认仅返回 `id/title/url/updatedAt/textPreview`。需要完整 JSON 时才加 `--full`。 |
 | **改文档优先增量** | 短改动用 `--mode patch`（替换片段），追加用 `--mode append`，**只有大幅改写才整篇 `replace`**。 |
 | **长内容走文件并清理** | 用 `--text-file xx.md` 而不是 `--text "..."`。务必加上 `--clean-file` 标志，使 Skill 在成功上传后自动删除本地缓存文件。 |
@@ -49,6 +55,7 @@ description: 全面管理 Outline 知识库。当用户要求查看 / 搜索 / �
 
 | 用户意图 | 命令 |
 |---|---|
+| "有哪些 Outline 实例 / 当前实例是谁" | `auth instances`（不联网，不输出完整 API key） |
 | "看一下我有哪些集合" | `collection list` |
 | "看 X 集合下的文档" | `collection documents --id <coll>`（平铺）/ `collection tree --id <coll>`（树形） |
 | "将集合或某篇文档下的所有子文档批量排序" | `collection reorder --id <coll> [--parent-document-id <doc>] --sort-by title [--direction ASC/DESC]` |

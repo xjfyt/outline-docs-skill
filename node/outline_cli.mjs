@@ -8,7 +8,7 @@ const HELP = `Outline API CLI (Node.js) —— 管理 Outline 知识库
   node outline_cli.mjs <resource> <action> [--flags]
 
 资源：
-  auth        info | config
+  auth        info | config | instances
   collection  list | view | create | update | delete | tree | documents | reorder
   document    list | view | create | update | delete | move | search | find
               | archive | restore | unpublish | duplicate | export | drafts | archived
@@ -24,6 +24,7 @@ const HELP = `Outline API CLI (Node.js) —— 管理 Outline 知识库
 
 通用标志：
   --instance X   选择 .outline.instances.json 中的 Outline 实例（也可用 OUTLINE_INSTANCE）
+  --confirm      危险操作保护开启时，确认执行当前危险操作
   --full         输出完整响应（默认只返摘要）
   --preview-len  摘要中 textPreview 长度（0 = 不要 textPreview）
   --all          list/search 自动翻页累积全部结果

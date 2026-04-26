@@ -104,6 +104,20 @@ function normalizeAliases(raw) {
   return aliases.filter(Boolean);
 }
 
+function boolConfig(raw, keys, fallback = false) {
+  for (const key of keys) {
+    if (!(key in raw)) continue;
+    const value = raw[key];
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return value !== 0;
+    if (typeof value === "string") {
+      return ["1", "true", "yes", "on", "enabled", "开启"].includes(value.trim().toLowerCase());
+    }
+    return Boolean(value);
+  }
+  return fallback;
+}
+
 function normalizeInstance(raw, key = null) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
     throw new Error(`实例 ${key || "<unknown>"} 必须是 JSON object`);
@@ -140,7 +154,22 @@ function normalizeInstances(config) {
   } else {
     throw new Error("instances 必须是 object 或 array");
   }
+  validateInstanceSelectors(instances);
   return instances;
+}
+
+function validateInstanceSelectors(instances) {
+  const seen = new Map();
+  for (const [name, instance] of Object.entries(instances)) {
+    const selectors = [name, instance.displayName, ...(instance.aliases || [])].filter(Boolean);
+    for (const selector of selectors) {
+      const owner = seen.get(selector);
+      if (owner && owner !== name) {
+        throw new Error(`Outline 实例选择器重复：${selector} 同时指向 ${owner} 和 ${name}`);
+      }
+      seen.set(selector, name);
+    }
+  }
 }
 
 function configDefaultName(config) {
@@ -189,7 +218,17 @@ function resolveSettings() {
   const isDefault = selectedName === defaultName;
   let baseUrl = "";
   let apiKey = "";
+  let dangerousOperationProtection = boolConfig(
+    config,
+    ["dangerousOperationProtection", "dangerous_operation_protection", "protectDangerousOperations"],
+    false,
+  );
   if (instance) {
+    dangerousOperationProtection = boolConfig(
+      instance,
+      ["dangerousOperationProtection", "dangerous_operation_protection", "protectDangerousOperations"],
+      dangerousOperationProtection,
+    );
     if (isDefault) {
       baseUrl = envBaseUrl || instance.baseUrl;
       apiKey = envApiKey || instance.apiKey;
@@ -224,8 +263,31 @@ function resolveSettings() {
     baseUrl,
     apiKey,
     currentInstance,
+    dangerousOperationProtection,
+    instanceSummaries: buildInstanceSummaries(instances, defaultName, selectedName, envBaseUrl, envApiKey, configPath),
     configError: configError || instanceError,
   };
+}
+
+function buildInstanceSummaries(instances, defaultName, selectedName, envBaseUrl, envApiKey, configPath) {
+  const names = Object.keys(instances);
+  if (!(defaultName in instances)) names.unshift(defaultName);
+  return names.map((name) => {
+    const instance = instances[name] || {};
+    const isDefault = name === defaultName;
+    const baseUrl = isDefault ? (envBaseUrl || instance.baseUrl || "") : (instance.baseUrl || "");
+    const apiKey = isDefault ? (envApiKey || instance.apiKey || "") : (instance.apiKey || "");
+    return {
+      name,
+      displayName: instance.displayName || name,
+      aliases: instance.aliases || [],
+      baseUrl,
+      hasApiKey: Boolean(apiKey),
+      default: isDefault,
+      current: name === selectedName,
+      configPath,
+    };
+  });
 }
 
 loadEnv();
@@ -236,6 +298,20 @@ export const API_KEY = SETTINGS.apiKey;
 export const CURRENT_INSTANCE = SETTINGS.currentInstance;
 export const INSTANCE_NAME = CURRENT_INSTANCE.name;
 export const CONFIG_ERROR = SETTINGS.configError;
+export const DANGEROUS_OPERATION_PROTECTION = SETTINGS.dangerousOperationProtection;
+export const INSTANCE_SUMMARIES = SETTINGS.instanceSummaries;
+
+export function requireDangerConfirmation(operation, flags = {}) {
+  if (!DANGEROUS_OPERATION_PROTECTION || flags.confirm || flags.confirmDangerous) return;
+  console.log(JSON.stringify({
+    ok: false,
+    error: "危险操作保护已开启，需要显式确认后才能执行。",
+    operation,
+    requiredFlag: "--confirm",
+    hint: "如确认要执行，请重新运行命令并添加 --confirm 或 --confirm-dangerous。",
+  }));
+  process.exit(1);
+}
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const MAX_RETRIES = 3;
@@ -312,6 +388,7 @@ export async function apiPost(endpoint, payload = {}) {
       }
       return {
         ok: false, status: 0, endpoint,
+        outlineInstance: CURRENT_INSTANCE,
         hint: "网络错误，已重试多次仍失败。",
         error: String(e?.message || e),
       };
@@ -337,6 +414,7 @@ export async function apiPost(endpoint, payload = {}) {
         ok: false,
         status: res.status,
         endpoint,
+        outlineInstance: CURRENT_INSTANCE,
         hint: HINTS[res.status] || "",
         raw: data,
       };

@@ -75,6 +75,23 @@ bash bin/run.sh upload_dir --dir ./docs --collection-id <coll-url> --delay 1.5
 bash bin/run.sh document export --id <url> --output backup.md
 ```
 
+## 7. 多 Outline 实例写入
+
+用户："往咪鼠文档管理平台上添加一篇 XXX 文档"。
+
+```bash
+# 先确认自然语言平台名能映射到哪个实例（不联网）
+bash bin/run.sh auth instances
+
+# 后续所有读取 / 写入命令都带同一个 --instance
+bash bin/run.sh --instance "咪鼠文档管理平台" collection list
+bash bin/run.sh --instance "咪鼠文档管理平台" document create \
+       --collection-id <coll-url> \
+       --title "XXX" --text-file body.md
+```
+
+如果 `.outline.instances.json` 开启了 `dangerousOperationProtection`，整篇替换、永久删除、非 dry-run 批量上传需要在用户确认后加 `--confirm`。
+
 ---
 
 ## Token 节省 / 效率提示

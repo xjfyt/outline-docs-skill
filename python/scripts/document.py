@@ -1,6 +1,6 @@
 import os
 import sys
-from .api import api_post, extract_id, paginate_all
+from .api import api_post, extract_id, paginate_all, require_danger_confirmation
 from .utils import render_response, summarize_doc, print_json, _resolve_preview_len
 
 
@@ -81,6 +81,10 @@ def handle_document(args):
                 payload["title"] = args.title
             text = _read_text_arg(args)
             if text is not None:
+                require_danger_confirmation(
+                    "document update --mode replace",
+                    getattr(args, "confirm", False) or getattr(args, "confirm_dangerous", False),
+                )
                 payload["text"] = text
         elif mode == "append":
             text = _read_text_arg(args)
@@ -117,6 +121,10 @@ def handle_document(args):
         doc_id = extract_id(args.id, "doc")
         payload = {"id": doc_id}
         if args.permanent:
+            require_danger_confirmation(
+                "document delete --permanent",
+                getattr(args, "confirm", False) or getattr(args, "confirm_dangerous", False),
+            )
             payload["permanent"] = True
         res = api_post("documents.delete", payload)
         render_response(res, full=True)
@@ -253,6 +261,8 @@ def setup_document_parser(subparsers):
     p.add_argument("--publish", action="store_true", help="update：将草稿发布")
     p.add_argument("--done", action="store_true", help="update：标记完成")
     p.add_argument("--permanent", action="store_true", help="delete：永久删除（不放回收站）")
+    p.add_argument("--confirm", action="store_true", help="危险操作保护开启时，确认执行当前危险操作")
+    p.add_argument("--confirm-dangerous", action="store_true", help="同 --confirm；语义更明确，供脚本使用")
     p.add_argument("--limit", type=int, help="分页大小")
     p.add_argument("--offset", type=int, help="分页起点")
     p.add_argument("--sort", help="list：排序字段（updatedAt/createdAt/title/index）")

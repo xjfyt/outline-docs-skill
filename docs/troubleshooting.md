@@ -10,15 +10,18 @@
 | `status: 429` | 限流。CLI 已自动重试 3 次；`upload_dir` 加大 `--delay`（如 2.0/3.0）。 |
 | `Missing OUTLINE_BASE_URL or OUTLINE_API_KEY` | 配置默认实例环境变量；本 Skill 支持 `.outline.env`/`.env`。仓库根有 `.outline.env.example` 可复制。 |
 | `未找到 Outline 实例` | `OUTLINE_INSTANCE` / `--instance` 指向的名称不在 `.outline.instances.json` 的 key、`displayName` 或 `aliases` 中。 |
+| `Outline 实例选择器重复` | 多个实例使用了相同 key、`displayName` 或 `aliases`；重命名后再执行，避免误写实例。 |
 | `Outline 实例 X 缺少 baseUrl/apiKey` | 非默认实例必须在 `.outline.instances.json` 中提供 `baseUrl` 和 `apiKey`，或用 `apiKeyEnv` 指向环境变量。 |
+| `危险操作保护已开启` | `.outline.instances.json` 开启了 `dangerousOperationProtection`；确认操作后重跑并添加 `--confirm` 或 `--confirm-dangerous`。 |
 | `未找到可用的运行时` | 装 uv（`curl -LsSf https://astral.sh/uv/install.sh \| sh`）、或 pip 装 httpx、或装 Node >= 18。 |
 | Node 版本 < 18 | 全局 fetch 不可用；升级 Node 或改用 Python/uv 路径。 |
 
 ## 输出约定
 
 - 成功响应：`{"ok": true, ...}` 或带 `data` 字段。
-- 失败响应：`{"ok": false, "status": <http>, "hint": "...中文提示...", "raw": ...}`。
+- 失败响应：`{"ok": false, "status": <http>, "outlineInstance": {...}, "hint": "...中文提示...", "raw": ...}`。
 - 列表摘要：`{"ok": true, "count": N, "items": [...]}`。
+- 本地实例概览：`auth instances` 不联网，只输出实例名、displayName、aliases、baseUrl 与 `hasApiKey`，不会输出完整 API key。
 - 中文文本不会被转义为 `\uXXXX`。
 
 ## 注意事项

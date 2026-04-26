@@ -101,6 +101,21 @@ def _normalize_aliases(raw):
     return [alias for alias in aliases if alias]
 
 
+def _bool_config(raw, keys, default=False):
+    for key in keys:
+        if key not in raw:
+            continue
+        value = raw.get(key)
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, (int, float)):
+            return value != 0
+        if isinstance(value, str):
+            return value.strip().lower() in {"1", "true", "yes", "on", "enabled", "开启"}
+        return bool(value)
+    return default
+
+
 def _normalize_instance(raw, key=None):
     if not isinstance(raw, dict):
         raise ValueError(f"实例 {key or '<unknown>'} 必须是 JSON object")
@@ -134,7 +149,21 @@ def _normalize_instances(config):
             instances[item["name"]] = item
     else:
         raise ValueError("instances 必须是 object 或 array")
+    _validate_instance_selectors(instances)
     return instances
+
+
+def _validate_instance_selectors(instances):
+    seen = {}
+    for name, instance in instances.items():
+        selectors = [name, instance.get("displayName"), *(instance.get("aliases") or [])]
+        for selector in selectors:
+            if not selector:
+                continue
+            owner = seen.get(selector)
+            if owner and owner != name:
+                raise ValueError(f"Outline 实例选择器重复：{selector} 同时指向 {owner} 和 {name}")
+            seen[selector] = name
 
 
 def _config_default_name(config):
@@ -174,7 +203,17 @@ def _resolve_settings():
 
     instance, selected_name = _find_instance(instances, selected_input)
     is_default = selected_name == default_name
+    dangerous_protection = _bool_config(
+        config,
+        ["dangerousOperationProtection", "dangerous_operation_protection", "protectDangerousOperations"],
+        False,
+    )
     if instance:
+        dangerous_protection = _bool_config(
+            instance,
+            ["dangerousOperationProtection", "dangerous_operation_protection", "protectDangerousOperations"],
+            dangerous_protection,
+        )
         if is_default:
             base_url = env_base_url or instance["baseUrl"]
             api_key = env_api_key or instance["apiKey"]
@@ -210,12 +249,56 @@ def _resolve_settings():
     }
     if selected_input != selected_name:
         current["requested"] = selected_input
-    return base_url, api_key, current, config_error or instance_error
+    summaries = _build_instance_summaries(instances, default_name, selected_name, env_base_url, env_api_key, config_path)
+    return base_url, api_key, current, config_error or instance_error, dangerous_protection, summaries
+
+
+def _build_instance_summaries(instances, default_name, selected_name, env_base_url, env_api_key, config_path):
+    summaries = []
+    names = list(instances.keys())
+    if default_name not in instances:
+        names.insert(0, default_name)
+    for name in names:
+        instance = instances.get(name) or {}
+        is_default = name == default_name
+        base_url = (env_base_url or instance.get("baseUrl") or "") if is_default else (instance.get("baseUrl") or "")
+        api_key = (env_api_key or instance.get("apiKey") or "") if is_default else (instance.get("apiKey") or "")
+        summaries.append(
+            {
+                "name": name,
+                "displayName": instance.get("displayName") or name,
+                "aliases": instance.get("aliases") or [],
+                "baseUrl": base_url,
+                "hasApiKey": bool(api_key),
+                "default": is_default,
+                "current": name == selected_name,
+                "configPath": config_path,
+            }
+        )
+    return summaries
 
 
 load_env()
-BASE_URL, API_KEY, CURRENT_INSTANCE, CONFIG_ERROR = _resolve_settings()
+BASE_URL, API_KEY, CURRENT_INSTANCE, CONFIG_ERROR, DANGEROUS_OPERATION_PROTECTION, INSTANCE_SUMMARIES = _resolve_settings()
 INSTANCE_NAME = CURRENT_INSTANCE["name"]
+
+
+def require_danger_confirmation(operation, confirmed=False):
+    if not DANGEROUS_OPERATION_PROTECTION or confirmed:
+        return
+    print(
+        json.dumps(
+            {
+                "ok": False,
+                "error": "危险操作保护已开启，需要显式确认后才能执行。",
+                "operation": operation,
+                "requiredFlag": "--confirm",
+                "hint": "如确认要执行，请重新运行命令并添加 --confirm 或 --confirm-dangerous。",
+            },
+            ensure_ascii=False,
+        )
+    )
+    sys.exit(1)
 
 DEFAULT_TIMEOUT = 30
 MAX_RETRIES = 3
@@ -291,6 +374,7 @@ def _make_error(status, body, endpoint):
         "ok": False,
         "status": status,
         "endpoint": endpoint,
+        "outlineInstance": CURRENT_INSTANCE,
         "hint": _HUMAN_HINTS.get(status, ""),
         "raw": body if isinstance(body, (dict, list)) else str(body)[:500],
     }
@@ -312,6 +396,7 @@ def api_post(endpoint, payload=None):
                 continue
             return {
                 "ok": False, "status": 0, "endpoint": endpoint,
+                "outlineInstance": CURRENT_INSTANCE,
                 "hint": "网络错误，已重试多次仍失败。", "error": str(e),
             }
 

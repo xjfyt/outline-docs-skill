@@ -4,7 +4,7 @@ import json
 import time
 import re
 import fnmatch
-from .api import api_post, extract_id
+from .api import api_post, extract_id, require_danger_confirmation
 from .attachment import upload_image_for_document
 
 
@@ -85,6 +85,11 @@ def handle_upload_dir(args):
     collection_id = extract_id(args.collection_id, "collection")
     rate_limit_delay = args.delay
     dry_run = args.dry_run
+    if not dry_run:
+        require_danger_confirmation(
+            "upload_dir 非 dry-run 批量上传",
+            getattr(args, "confirm", False) or getattr(args, "confirm_dangerous", False),
+        )
 
     if not os.path.isdir(target_dir):
         print(json.dumps({"ok": False, "error": f"Directory not found: {target_dir}"}, ensure_ascii=False))
@@ -217,5 +222,7 @@ def setup_upload_dir_parser(subparsers):
     p.add_argument("--collection-id", required=True, help="目标集合 ID 或 URL")
     p.add_argument("--delay", type=float, default=1.0, help="每次 API 调用间隔秒（默认 1.0，遇 429 调大）")
     p.add_argument("--dry-run", action="store_true", help="只打印将要执行的操作，不写入 Outline")
+    p.add_argument("--confirm", action="store_true", help="危险操作保护开启时，确认执行非 dry-run 批量上传")
+    p.add_argument("--confirm-dangerous", action="store_true", help="同 --confirm；语义更明确，供脚本使用")
     p.add_argument("--ignore", action="append", help="额外忽略 glob 模式（可多次指定）")
     p.set_defaults(func=handle_upload_dir)
