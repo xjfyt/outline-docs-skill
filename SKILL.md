@@ -9,7 +9,9 @@ description: 全面管理 Outline 知识库。当用户要求查看 / 搜索 / �
 
 ## 0. 调用方式（必看）
 
-**环境变量**：`OUTLINE_BASE_URL`、`OUTLINE_API_KEY`（必需）。程序会优先在用户家目录下查找 `.outline.env` / `.env`，若没有再去依次检查当前运行目录及 skill 目录。若全未发现配置，则会提醒用户。配置项亦可直接用 export 呈现；仓库根有 `.outline.env.example` 可供参考。
+**环境变量**：`OUTLINE_BASE_URL`、`OUTLINE_API_KEY`（必需）定义默认 Outline 实例。程序会优先在用户家目录下查找 `.outline.env` / `.env`，若没有再去依次检查当前运行目录及 skill 目录。若全未发现配置，则会提醒用户。配置项亦可直接用 export 呈现；仓库根有 `.outline.env.example` 可供参考。
+
+**多实例**：可用 `.outline.instances.json` 给默认实例命名并配置其它 Outline。默认实例仍使用 `OUTLINE_BASE_URL` / `OUTLINE_API_KEY`；其它实例在 `instances` 内配置 `baseUrl` / `apiKey`。选择实例用 `--instance <name>`（可放命令任意位置）或 `OUTLINE_INSTANCE=<name>`，`<name>` 可是配置 key、`displayName` 或 `aliases`。若用户明确指定某个 Outline 实例 / 文档平台名，后续命令必须带上对应 `--instance`。
 
 **统一入口**：
 
@@ -28,6 +30,7 @@ description: 全面管理 Outline 知识库。当用户要求查看 / 搜索 / �
 | 规则 | 说明 |
 |---|---|
 | **接受 URL 也接受 ID** | 所有 `--id` / `--collection-id` / `--parent-document-id` 自动解析 Outline URL，无需手动抠 ID。 |
+| **多实例必须显式选择** | 默认走环境变量里的默认实例；用户提到某个实例名、平台名、`displayName` 或别名时，在命令中加 `--instance "<用户提到的名称>"`，避免误写到默认实例。 |
 | **默认输出"摘要"** | `list` / `view` / `search` 默认仅返回 `id/title/url/updatedAt/textPreview`。需要完整 JSON 时才加 `--full`。 |
 | **改文档优先增量** | 短改动用 `--mode patch`（替换片段），追加用 `--mode append`，**只有大幅改写才整篇 `replace`**。 |
 | **长内容走文件并清理** | 用 `--text-file xx.md` 而不是 `--text "..."`。务必加上 `--clean-file` 标志，使 Skill 在成功上传后自动删除本地缓存文件。 |

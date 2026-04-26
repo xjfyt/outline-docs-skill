@@ -1,8 +1,8 @@
 import os from "node:os";
-import { apiPost, BASE_URL } from "./api.mjs";
+import { apiPost, BASE_URL, CURRENT_INSTANCE } from "./api.mjs";
 import { printJson } from "./utils.mjs";
 
-const SKILL_VERSION = "1.1.0";
+const SKILL_VERSION = "1.2.0";
 
 function runtimeInfo() {
   return {
@@ -23,6 +23,7 @@ export async function handleAuth(action, _flags) {
     printJson({
       ok: true,
       baseUrl: BASE_URL,
+      outlineInstance: CURRENT_INSTANCE,
       skillVersion: SKILL_VERSION,
       runtime: runtimeInfo(),
       user: { id: user.id, name: user.name, email: user.email, role: user.role },

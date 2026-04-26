@@ -1,0 +1,21 @@
+{
+  "default": "mishu",
+  "instances": {
+    "mishu": {
+      "displayName": "咪鼠文档管理平台",
+      "aliases": ["咪鼠", "公司文档"],
+      "description": "默认实例继续使用 OUTLINE_BASE_URL / OUTLINE_API_KEY，无需在这里重复密钥。"
+    },
+    "family": {
+      "displayName": "家庭文档管理平台",
+      "aliases": ["家庭文档", "家用文档"],
+      "baseUrl": "https://family-docs.example.com",
+      "apiKey": "ol_api_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    "private": {
+      "displayName": "密钥来自环境变量的 Outline",
+      "baseUrl": "https://private-docs.example.com",
+      "apiKeyEnv": "OUTLINE_PRIVATE_API_KEY"
+    }
+  }
+}

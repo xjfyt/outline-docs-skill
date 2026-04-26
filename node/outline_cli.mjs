@@ -1,17 +1,5 @@
 #!/usr/bin/env node
 import { parseArgs } from "./lib/argparse.mjs";
-import { handleAuth } from "./lib/auth.mjs";
-import { handleCollection } from "./lib/collection.mjs";
-import { handleDocument } from "./lib/document.mjs";
-import { handleUpload } from "./lib/attachment.mjs";
-import { handleUploadDir } from "./lib/upload_dir.mjs";
-import { handleTemplate } from "./lib/template.mjs";
-import { handleShare } from "./lib/share.mjs";
-import { handleComment } from "./lib/comment.mjs";
-import { handleRevision } from "./lib/revision.mjs";
-import { handleUser } from "./lib/user.mjs";
-import { handlePin } from "./lib/pin.mjs";
-import { handleApi } from "./lib/generic.mjs";
 import { printJson } from "./lib/utils.mjs";
 
 const HELP = `Outline API CLI (Node.js) —— 管理 Outline 知识库
@@ -35,13 +23,41 @@ const HELP = `Outline API CLI (Node.js) —— 管理 Outline 知识库
   api         call --endpoint X   （通用 POST 端点，覆盖未封装的 API）
 
 通用标志：
+  --instance X   选择 .outline.instances.json 中的 Outline 实例（也可用 OUTLINE_INSTANCE）
   --full         输出完整响应（默认只返摘要）
   --preview-len  摘要中 textPreview 长度（0 = 不要 textPreview）
   --all          list/search 自动翻页累积全部结果
 `;
 
+function applyInstanceFlag(argv) {
+  const cleaned = [];
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "--instance" || arg === "--outline-instance") {
+      const value = argv[i + 1];
+      if (!value || value.startsWith("-")) {
+        console.log(JSON.stringify({ ok: false, error: "--instance 需要实例名" }));
+        process.exit(2);
+      }
+      process.env.OUTLINE_INSTANCE = value;
+      i++;
+      continue;
+    }
+    if (arg.startsWith("--instance=")) {
+      process.env.OUTLINE_INSTANCE = arg.slice("--instance=".length);
+      continue;
+    }
+    if (arg.startsWith("--outline-instance=")) {
+      process.env.OUTLINE_INSTANCE = arg.slice("--outline-instance=".length);
+      continue;
+    }
+    cleaned.push(arg);
+  }
+  return cleaned;
+}
+
 async function main() {
-  const argv = process.argv.slice(2);
+  const argv = applyInstanceFlag(process.argv.slice(2));
   if (argv.length === 0 || argv[0] === "-h" || argv[0] === "--help") {
     console.log(HELP);
     process.exit(argv.length === 0 ? 2 : 0);
@@ -49,18 +65,54 @@ async function main() {
   const { resource, action, flags } = parseArgs(argv);
   try {
     switch (resource) {
-      case "auth":       return await handleAuth(action, flags);
-      case "collection": return await handleCollection(action, flags);
-      case "document":   return await handleDocument(action, flags);
-      case "upload":     return await handleUpload(action, flags);
-      case "upload_dir": return await handleUploadDir(action, flags);
-      case "template":   return await handleTemplate(action, flags);
-      case "share":      return await handleShare(action, flags);
-      case "comment":    return await handleComment(action, flags);
-      case "revision":   return await handleRevision(action, flags);
-      case "user":       return await handleUser(action, flags);
-      case "pin":        return await handlePin(action, flags);
-      case "api":        return await handleApi(action, flags);
+      case "auth": {
+        const { handleAuth } = await import("./lib/auth.mjs");
+        return await handleAuth(action, flags);
+      }
+      case "collection": {
+        const { handleCollection } = await import("./lib/collection.mjs");
+        return await handleCollection(action, flags);
+      }
+      case "document": {
+        const { handleDocument } = await import("./lib/document.mjs");
+        return await handleDocument(action, flags);
+      }
+      case "upload": {
+        const { handleUpload } = await import("./lib/attachment.mjs");
+        return await handleUpload(action, flags);
+      }
+      case "upload_dir": {
+        const { handleUploadDir } = await import("./lib/upload_dir.mjs");
+        return await handleUploadDir(action, flags);
+      }
+      case "template": {
+        const { handleTemplate } = await import("./lib/template.mjs");
+        return await handleTemplate(action, flags);
+      }
+      case "share": {
+        const { handleShare } = await import("./lib/share.mjs");
+        return await handleShare(action, flags);
+      }
+      case "comment": {
+        const { handleComment } = await import("./lib/comment.mjs");
+        return await handleComment(action, flags);
+      }
+      case "revision": {
+        const { handleRevision } = await import("./lib/revision.mjs");
+        return await handleRevision(action, flags);
+      }
+      case "user": {
+        const { handleUser } = await import("./lib/user.mjs");
+        return await handleUser(action, flags);
+      }
+      case "pin": {
+        const { handlePin } = await import("./lib/pin.mjs");
+        return await handlePin(action, flags);
+      }
+      case "api": {
+        const { handleApi } = await import("./lib/generic.mjs");
+        return await handleApi(action, flags);
+      }
       default:
         printJson({
           ok: false,

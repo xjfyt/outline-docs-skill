@@ -8,7 +8,9 @@
 | `status: 403` | 当前 key 对该集合/文档无权限。 |
 | `status: 404` | ID/URL 不对，或文档已删除/归档。归档的文档要先 `document restore`。 |
 | `status: 429` | 限流。CLI 已自动重试 3 次；`upload_dir` 加大 `--delay`（如 2.0/3.0）。 |
-| `Missing OUTLINE_BASE_URL or OUTLINE_API_KEY` | 配置环境变量；本 Skill 支持 `.outline.env`/`.env`（cwd、skill 目录 或 `~/`）。仓库根有 `.outline.env.example` 可复制。 |
+| `Missing OUTLINE_BASE_URL or OUTLINE_API_KEY` | 配置默认实例环境变量；本 Skill 支持 `.outline.env`/`.env`。仓库根有 `.outline.env.example` 可复制。 |
+| `未找到 Outline 实例` | `OUTLINE_INSTANCE` / `--instance` 指向的名称不在 `.outline.instances.json` 的 key、`displayName` 或 `aliases` 中。 |
+| `Outline 实例 X 缺少 baseUrl/apiKey` | 非默认实例必须在 `.outline.instances.json` 中提供 `baseUrl` 和 `apiKey`，或用 `apiKeyEnv` 指向环境变量。 |
 | `未找到可用的运行时` | 装 uv（`curl -LsSf https://astral.sh/uv/install.sh \| sh`）、或 pip 装 httpx、或装 Node >= 18。 |
 | Node 版本 < 18 | 全局 fetch 不可用；升级 Node 或改用 Python/uv 路径。 |
 
@@ -43,6 +45,9 @@ Windows PowerShell：`$env:OUTLINE_RUN_VIA="node"; bin\run.ps1 ...`
 
 | 变量 | 作用 | 默认 |
 |---|---|---|
+| `OUTLINE_INSTANCE_NAME` | 默认实例名称 | `default` |
+| `OUTLINE_INSTANCE` | 当前命令选择的实例名；等价于 `--instance` | 默认实例 |
+| `OUTLINE_INSTANCES_FILE` | 多实例配置文件路径 | 自动查找 `.outline.instances.json` |
 | `OUTLINE_PIP_MIRROR` | 失败提示中 pip install 推荐的镜像 | `https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple` |
 | `OUTLINE_CACHE_DIR` | 存放 uv / pycache 的根目录 | `$XDG_CACHE_HOME/outline-skill`（Unix）/ `%LOCALAPPDATA%\outline-skill`（Win） |
 | `OUTLINE_TEMPLATES_DIR` | 自定义模板目录（与内置并存；同名优先） | 无 |

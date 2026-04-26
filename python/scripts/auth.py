@@ -2,10 +2,10 @@
 import os
 import platform
 import sys
-from .api import api_post, BASE_URL
+from .api import api_post, BASE_URL, CURRENT_INSTANCE
 from .utils import print_json, render_response
 
-SKILL_VERSION = "1.1.0"
+SKILL_VERSION = "1.2.0"
 
 
 def _runtime_info():
@@ -36,6 +36,7 @@ def handle_auth(args):
             {
                 "ok": True,
                 "baseUrl": BASE_URL,
+                "outlineInstance": CURRENT_INSTANCE,
                 "skillVersion": SKILL_VERSION,
                 "runtime": _runtime_info(),
                 "user": {

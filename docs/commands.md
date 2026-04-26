@@ -3,6 +3,18 @@
 > 所有示例统一使用 `bash bin/run.sh ...`；
 > Windows cmd 换成 `bin\run.cmd ...`，PowerShell 换成 `bin\run.ps1 ...`，参数完全一致。
 
+## 全局实例选择
+
+默认实例继续来自 `OUTLINE_BASE_URL` / `OUTLINE_API_KEY`。其它实例在 `.outline.instances.json` 中配置后，可用以下任一方式选择：
+
+```bash
+bash bin/run.sh --instance family auth info
+bash bin/run.sh document list --instance "家庭文档管理平台"
+OUTLINE_INSTANCE=咪鼠 bash bin/run.sh collection list
+```
+
+`--instance` / `OUTLINE_INSTANCE` 可使用配置 key、`displayName` 或 `aliases`。
+
 ## auth — 健康检查
 
 ```bash

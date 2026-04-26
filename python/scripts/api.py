@@ -17,7 +17,7 @@ def load_env():
         # 用户家目录（优先级最高）
         os.path.join(home, ".outline.env"),
         os.path.join(home, ".env"),
-        # cwd（项目级覆盖）
+        # cwd（项目级配置）
         ".outline.env",
         ".env",
         # skill 目录（本仓库自带配置）
@@ -38,9 +38,184 @@ def load_env():
                         os.environ[key] = value.strip("\"'")
 
 
+def _instance_config_files():
+    configured = os.environ.get("OUTLINE_INSTANCES_FILE")
+    if configured:
+        return [configured]
+    home = os.path.expanduser("~")
+    skill = _skill_dir()
+    return [
+        os.path.join(home, ".outline.instances.json"),
+        ".outline.instances.json",
+        os.path.join(skill, ".outline.instances.json"),
+    ]
+
+
+def _load_instance_config():
+    seen = set()
+    explicit = bool(os.environ.get("OUTLINE_INSTANCES_FILE"))
+    for config_file in _instance_config_files():
+        config_file = os.path.abspath(os.path.expanduser(config_file))
+        if config_file in seen:
+            continue
+        seen.add(config_file)
+        if not os.path.exists(config_file):
+            if explicit:
+                raise FileNotFoundError(f"OUTLINE_INSTANCES_FILE 指向的文件不存在：{config_file}")
+            continue
+        with open(config_file, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if not isinstance(data, dict):
+            raise ValueError(f"{config_file} 必须是 JSON object")
+        return data, config_file
+    return {}, None
+
+
+def _pick_first(raw, keys):
+    for key in keys:
+        value = raw.get(key)
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    return None
+
+
+def _pick_env(raw, keys):
+    env_name = _pick_first(raw, keys)
+    if not env_name:
+        return None
+    return os.environ.get(env_name)
+
+
+def _normalize_aliases(raw):
+    aliases = []
+    for key in ["aliases", "alias"]:
+        value = raw.get(key)
+        if not value:
+            continue
+        if isinstance(value, str):
+            aliases.append(value.strip())
+        elif isinstance(value, list):
+            aliases.extend(str(item).strip() for item in value if str(item).strip())
+        else:
+            aliases.append(str(value).strip())
+    return [alias for alias in aliases if alias]
+
+
+def _normalize_instance(raw, key=None):
+    if not isinstance(raw, dict):
+        raise ValueError(f"实例 {key or '<unknown>'} 必须是 JSON object")
+    name = str(key or raw.get("name") or "").strip()
+    if not name:
+        raise ValueError("每个实例都必须有 name")
+    display_name = _pick_first(raw, ["displayName", "display_name", "label"]) or str(raw.get("name") or name)
+    base_url = _pick_env(raw, ["baseUrlEnv", "base_url_env", "urlEnv", "url_env"])
+    api_key = _pick_env(raw, ["apiKeyEnv", "api_key_env", "tokenEnv", "token_env"])
+    base_url = base_url or _pick_first(raw, ["baseUrl", "base_url", "url"])
+    api_key = api_key or _pick_first(raw, ["apiKey", "api_key", "token"])
+    return {
+        "name": name,
+        "displayName": display_name,
+        "aliases": _normalize_aliases(raw),
+        "baseUrl": (base_url or "").rstrip("/"),
+        "apiKey": api_key or "",
+    }
+
+
+def _normalize_instances(config):
+    raw_instances = config.get("instances") or {}
+    instances = {}
+    if isinstance(raw_instances, dict):
+        for key, raw in raw_instances.items():
+            item = _normalize_instance(raw, str(key))
+            instances[item["name"]] = item
+    elif isinstance(raw_instances, list):
+        for raw in raw_instances:
+            item = _normalize_instance(raw)
+            instances[item["name"]] = item
+    else:
+        raise ValueError("instances 必须是 object 或 array")
+    return instances
+
+
+def _config_default_name(config):
+    return _pick_first(config, ["default", "defaultInstance", "default_instance"])
+
+
+def _find_instance(instances, selected_name):
+    if selected_name in instances:
+        return instances[selected_name], selected_name
+    for name, instance in instances.items():
+        candidates = [instance.get("displayName"), *(instance.get("aliases") or [])]
+        if selected_name in candidates:
+            return instance, name
+    return None, selected_name
+
+
+def _resolve_settings():
+    env_base_url = (os.environ.get("OUTLINE_BASE_URL") or "").rstrip("/")
+    env_api_key = os.environ.get("OUTLINE_API_KEY") or ""
+    try:
+        config, config_path = _load_instance_config()
+        instances = _normalize_instances(config)
+        config_error = None
+    except Exception as e:
+        config, config_path, instances = {}, None, {}
+        config_error = f"读取 Outline 多实例配置失败：{e}"
+
+    default_input = (
+        os.environ.get("OUTLINE_INSTANCE_NAME")
+        or _config_default_name(config)
+        or "default"
+    ).strip()
+    _, default_name = _find_instance(instances, default_input)
+    selected_input = (os.environ.get("OUTLINE_INSTANCE") or default_name).strip()
+    if selected_input in ("default", "env") and selected_input not in instances:
+        selected_input = default_name
+
+    instance, selected_name = _find_instance(instances, selected_input)
+    is_default = selected_name == default_name
+    if instance:
+        if is_default:
+            base_url = env_base_url or instance["baseUrl"]
+            api_key = env_api_key or instance["apiKey"]
+        else:
+            base_url = instance["baseUrl"]
+            api_key = instance["apiKey"]
+    elif is_default:
+        base_url = env_base_url
+        api_key = env_api_key
+    else:
+        base_url = ""
+        api_key = ""
+
+    instance_error = None
+    if not instance and not is_default:
+        instance_error = (
+            f"未找到 Outline 实例：{selected_input}。请在 .outline.instances.json 的 instances 中配置该名称，"
+            "或使用实例的 name / displayName / aliases。"
+        )
+    elif instance and not is_default and (not base_url or not api_key):
+        missing = []
+        if not base_url:
+            missing.append("baseUrl")
+        if not api_key:
+            missing.append("apiKey")
+        instance_error = f"Outline 实例 {selected_name} 缺少 {', '.join(missing)}。"
+
+    current = {
+        "name": selected_name,
+        "displayName": (instance or {}).get("displayName") or selected_name,
+        "default": is_default,
+        "configPath": config_path,
+    }
+    if selected_input != selected_name:
+        current["requested"] = selected_input
+    return base_url, api_key, current, config_error or instance_error
+
+
 load_env()
-BASE_URL = (os.environ.get("OUTLINE_BASE_URL") or "").rstrip("/")
-API_KEY = os.environ.get("OUTLINE_API_KEY")
+BASE_URL, API_KEY, CURRENT_INSTANCE, CONFIG_ERROR = _resolve_settings()
+INSTANCE_NAME = CURRENT_INSTANCE["name"]
 
 DEFAULT_TIMEOUT = 30
 MAX_RETRIES = 3
@@ -64,12 +239,16 @@ _client = None
 def _ensure_ready():
     """Lazy-load httpx + validate env. Allows non-network commands to run without setup."""
     global _client
+    if CONFIG_ERROR:
+        print(json.dumps({"ok": False, "error": CONFIG_ERROR}, ensure_ascii=False))
+        sys.exit(1)
     if not BASE_URL or not API_KEY:
         home_env = os.path.join(os.path.expanduser("~"), ".outline.env")
         msg = (
             f"未找到环境配置。系统已优先检查过用户目录 ({home_env})，"
             "并依次查找了当前执行目录及 Skill 目录，但均未发现 .outline.env 或 .env 文件。\\n"
-            "请在用户目录下创建 .outline.env，并填入 OUTLINE_BASE_URL 和 OUTLINE_API_KEY 进行配置。"
+            "请在用户目录下创建 .outline.env，并填入 OUTLINE_BASE_URL 和 OUTLINE_API_KEY 作为默认实例；"
+            "多实例可在 .outline.instances.json 中配置，并用 OUTLINE_INSTANCE 或 --instance 选择。"
         )
         print(
             json.dumps(
@@ -119,8 +298,8 @@ def _make_error(status, body, endpoint):
 
 def api_post(endpoint, payload=None):
     """POST to /api/{endpoint} with retry on 429/5xx and human-friendly errors."""
-    import httpx
     client = _ensure_ready()
+    import httpx
     url = f"{BASE_URL}/api/{endpoint}"
     body = payload or {}
 

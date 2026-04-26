@@ -72,7 +72,7 @@ git archive --format=zip --output=outline-docs-skill.zip HEAD
 
 ## 配置
 
-两个必需环境变量：
+默认 Outline 实例继续使用两个必需环境变量：
 
 | 变量 | 说明 |
 |---|---|
@@ -82,9 +82,9 @@ git archive --format=zip --output=outline-docs-skill.zip HEAD
 支持的配置位置（按优先级从高到低）：
 
 1. 进程环境变量（`export` / `set` / `$env:`）
-2. 当前工作目录 `<cwd>/.outline.env` 或 `<cwd>/.env`（项目级覆盖）
-3. **Skill 目录 `<skill>/.outline.env` 或 `<skill>/.env`**（本仓库根目录；推荐放这里，跟着 skill 一起管理）
-4. 用户家目录 `~/.outline.env` 或 `~/.env`
+2. 用户家目录 `~/.outline.env` 或 `~/.env`
+3. 当前工作目录 `<cwd>/.outline.env` 或 `<cwd>/.env`（项目级配置）
+4. **Skill 目录 `<skill>/.outline.env` 或 `<skill>/.env`**（本仓库根目录；推荐放这里，跟着 skill 一起管理）
 
 仓库根已提供 [`.outline.env.example`](.outline.env.example) 作为配置模板，复制并改名即可：
 
@@ -95,10 +95,48 @@ cp .outline.env.example .outline.env
 
 > `.outline.env` 与 `.env` 已加入 [`.gitignore`](.gitignore)，不会被误提交；`.outline.env.example` 才会进仓库。
 
+### 多 Outline 实例
+
+默认实例不需要改动现有变量：`OUTLINE_BASE_URL` / `OUTLINE_API_KEY` 仍然指向默认 Outline。若要给默认实例命名并增加其它 Outline，复制 [`.outline.instances.example.json`](.outline.instances.example.json) 为 `.outline.instances.json`：
+
+```json
+{
+  "default": "mishu",
+  "instances": {
+    "mishu": {
+      "displayName": "咪鼠文档管理平台",
+      "aliases": ["咪鼠", "公司文档"]
+    },
+    "family": {
+      "displayName": "家庭文档管理平台",
+      "aliases": ["家庭文档", "家用文档"],
+      "baseUrl": "https://family-docs.example.com",
+      "apiKey": "ol_api_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    }
+  }
+}
+```
+
+使用方式：
+
+```bash
+bash bin/run.sh auth info                    # 使用 default 指向的默认实例
+bash bin/run.sh --instance family auth info
+bash bin/run.sh document list --instance "家庭文档管理平台"
+OUTLINE_INSTANCE=咪鼠 bash bin/run.sh collection list
+```
+
+`--instance` / `OUTLINE_INSTANCE` 可使用配置 key、`displayName` 或 `aliases`。`.outline.instances.json` 的查找位置：`~/.outline.instances.json`、`<cwd>/.outline.instances.json`、`<skill>/.outline.instances.json`。也可以用 `OUTLINE_INSTANCES_FILE=/path/to/file.json` 指定路径。
+
+> `.outline.instances.json` 已加入 [`.gitignore`](.gitignore)，可放真实密钥；示例文件才会提交。
+
 可选环境变量：
 
 | 变量 | 作用 | 默认 |
 |---|---|---|
+| `OUTLINE_INSTANCE_NAME` | 默认实例名称（未设置多实例文件时使用） | `default` |
+| `OUTLINE_INSTANCE` | 当前命令选择的实例名；等价于 `--instance` | 默认实例 |
+| `OUTLINE_INSTANCES_FILE` | 多实例配置文件路径 | 自动查找 `.outline.instances.json` |
 | `OUTLINE_RUN_VIA` | 强制指定运行时：`python3` / `python` / `uv` / `node` | 自动探测 |
 | `OUTLINE_CACHE_DIR` | uv / pycache 的根目录 | `$XDG_CACHE_HOME/outline-skill`（Unix）/ `%LOCALAPPDATA%\outline-skill`（Win） |
 | `OUTLINE_PIP_MIRROR` | 报错提示里推荐的 pip 镜像 | 清华镜像 |
@@ -120,7 +158,8 @@ bash bin/run.sh auth info
 {
   "ok": true,
   "baseUrl": "https://docs.example.com",
-  "skillVersion": "1.1.0",
+  "outlineInstance": { "name": "main", "displayName": "默认 Outline", "default": true },
+  "skillVersion": "1.2.0",
   "runtime": { "lang": "python", "python": "3.12.4", "httpx": "0.27.0", "runVia": "auto", "platform": "darwin" },
   "user": { "id": "...", "name": "...", "email": "...", "role": "admin" },
   "team": { "id": "...", "name": "...", "url": "..." }
@@ -177,6 +216,7 @@ outline-docs-skill/
 │   └── lib/*.mjs
 ├── templates/            # 本地 markdown 写作模板 + meta.json
 ├── .outline.env.example  # 配置模板，复制为 .outline.env 后填入真实值
+├── .outline.instances.example.json # 多实例配置模板，复制为 .outline.instances.json
 ├── README.md             # 本文件（仓库说明；export-ignore，不进 skill 包）
 ├── LICENSE               # MIT（export-ignore，不进 skill 包）
 ├── .gitignore
